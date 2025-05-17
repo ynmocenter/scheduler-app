@@ -20,13 +20,14 @@
 
     * {
       box-sizing: border-box;
+      margin: 0; padding: 0;
     }
     body {
-      margin: 0;
       font-family: var(--font-base);
       background-color: var(--color-bg);
       color: var(--color-navy);
-      line-height: 1.5;
+      direction: rtl;
+      padding-bottom: 30px;
     }
     header {
       background-color: var(--color-mint);
@@ -39,15 +40,22 @@
     }
     header h1 {
       display: inline-block;
-      margin: 0 0 0 10px;
+      margin-left: 10px;
+      color: #fff;
       font-size: 24px;
       font-weight: bold;
-      color: #fff;
     }
     main {
-      max-width: 1100px;
+      max-width: 1000px;
       margin: 20px auto;
-      padding: 10px;
+      padding: 0 10px;
+    }
+    section {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     h2 {
       font-size: 20px;
@@ -55,13 +63,6 @@
       border-bottom: 2px solid var(--color-mint);
       display: inline-block;
       padding-bottom: 5px;
-    }
-    section {
-      background-color: #fff;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .form-row {
       display: flex;
@@ -71,7 +72,7 @@
     }
     .form-row > * {
       flex: 1;
-      min-width: 200px;
+      min-width: 150px;
     }
     label {
       display: block;
@@ -91,6 +92,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 15px;
+      margin-bottom: 10px;
     }
     .checkbox-group label {
       display: flex;
@@ -124,7 +126,6 @@
     }
     th {
       background-color: var(--color-beige);
-      color: var(--color-navy);
       font-weight: bold;
     }
     tr:nth-child(even) {
@@ -136,6 +137,7 @@
       padding: 6px 12px;
       font-size: 12px;
       margin: 0;
+      transition: background-color 0.2s;
     }
     .btn-small:hover {
       background-color: var(--color-navy);
@@ -158,14 +160,15 @@
     <h1>نظام مواعيد المركز</h1>
   </header>
   <main>
-
     <!-- 1) إدارة الأخصائيين -->
     <section>
       <h2>1. إدارة الأخصائيين</h2>
       <div class="form-row">
         <input type="text" id="newSpec" placeholder="اسم الأخصائي (مثال: أحمد)" />
+        <input type="email" id="newSpecEmail" placeholder="بريد الأخصائي الإلكتروني" />
         <button onclick="addSpec()">إضافة أخصائي</button>
       </div>
+      <button onclick="loadData()" class="btn-small mb-2">إعادة تحميل البيانات</button>
       <table>
         <thead>
           <tr>
@@ -200,14 +203,12 @@
           <option>ساعتين اختبار</option>
         </select>
       </div>
-      <div class="form-row">
-        <div class="checkbox-group">
-          <label><input type="checkbox" class="dept-chk" value="تعديل سلوك" /> تعديل سلوك</label>
-          <label><input type="checkbox" class="dept-chk" value="تخاطب" /> تخاطب</label>
-          <label><input type="checkbox" class="dept-chk" value="تنمية مهارات" /> تنمية مهارات</label>
-          <label><input type="checkbox" class="dept-chk" value="جلسة نفسية" /> جلسة نفسية</label>
-          <label><input type="checkbox" class="dept-chk" value="اختبار ذكاء" /> اختبار ذكاء</label>
-        </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" class="dept-chk" value="تعديل سلوك" /> تعديل سلوك</label>
+        <label><input type="checkbox" class="dept-chk" value="تخاطب" /> تخاطب</label>
+        <label><input type="checkbox" class="dept-chk" value="تنمية مهارات" /> تنمية مهارات</label>
+        <label><input type="checkbox" class="dept-chk" value="جلسة نفسية" /> جلسة نفسية</label>
+        <label><input type="checkbox" class="dept-chk" value="اختبار ذكاء" /> اختبار ذكاء</label>
       </div>
       <button onclick="addAppts()">حفظ موعد الطفل</button>
     </section>
@@ -215,97 +216,101 @@
     <!-- 3) جدول المواعيد وإرسال -->
     <section>
       <h2>3. جدول المواعيد</h2>
-      <div class="form-row">
+      <div class="form-row mb-2">
         <input type="text" id="filterSpec" placeholder="تصفية باسم الأخصائي" />
         <button onclick="filterAppts()">تصفية</button>
         <button onclick="renderAppts()">عرض الجميع</button>
       </div>
-      <div class="form-row">
+      <div class="form-row mb-2">
         <input type="email" id="specEmail" placeholder="البريد الإلكتروني للأخصائي" />
         <button onclick="sendScheduleEmail()">إرسال جدول الأخصائي</button>
       </div>
-      <div class="overflow-x-auto">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>اسم الطفل</th>
-              <th>اليوم</th>
-              <th>الوقت</th>
-              <th>القسم</th>
-              <th>نوع الجلسة</th>
-              <th>الأخصائي</th>
-              <th>تعويض</th>
-            </tr>
-          </thead>
-          <tbody id="apptTableBody"></tbody>
-        </table>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>اسم الطفل</th>
+            <th>اليوم</th>
+            <th>الوقت</th>
+            <th>القسم</th>
+            <th>نوع الجلسة</th>
+            <th>الأخصائي</th>
+            <th>تعويض</th>
+          </tr>
+        </thead>
+        <tbody id="apptTableBody"></tbody>
+      </table>
     </section>
-
   </main>
 
   <script>
-    // *** تهيئة EmailJS ***
+    // ===== تهيئة EmailJS =====
     emailjs.init('Ol1_k8IqKWQbPcbNv');
 
-    // *** جلب البيانات من localStorage ***
-    let specialists = JSON.parse(localStorage.getItem('specs') || '[]');
-    let appts       = JSON.parse(localStorage.getItem('appts') || '[]');
-
-    // *** تخزين الأخصائيين ***
-    function saveSpecs() {
-      localStorage.setItem('specs', JSON.stringify(specialists));
+    // ===== تحميل البيانات من localStorage =====
+    function loadData() {
+      specialists = JSON.parse(localStorage.getItem('specs') || '[]');
+      appts = JSON.parse(localStorage.getItem('appts') || '[]');
       renderSpecs();
+      renderAppts();
+      alert('تم إعادة تحميل البيانات من المتصفح');
     }
 
-    // *** عرض جدول الأخصائيين ***
+    // مصفوفتا البيانات العالمية
+    let specialists = [];
+    let appts = [];
+
+    // ===== عرض جدول الأخصائيين =====
     function renderSpecs() {
       const tbody = document.getElementById('specTableBody');
       tbody.innerHTML = '';
       specialists.forEach((s, idx) => {
-        // عرض اسم، بريد، وتوافر
-        const row = document.createElement('tr');
-        row.innerHTML = `
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
           <td class="border p-2">${idx + 1}</td>
           <td class="border p-2">${s.name}</td>
           <td class="border p-2">${s.email || '-'}</td>
-          <td class="border p-2">${(s.slots || []).join(', ') || '-'}</td>
+          <td class="border p-2">${(s.slots || []).join(' | ') || '-'}</td>
           <td class="border p-2">
             <button onclick="deleteSpec(${idx})" class="btn-small">حذف</button>
           </td>
         `;
-        tbody.appendChild(row);
+        tbody.appendChild(tr);
       });
     }
 
+    // ===== إضافة أخصائي جديد =====
     function addSpec() {
       const name = document.getElementById('newSpec').value.trim();
-      if (!name) return alert('يجب إدخال اسم الأخصائي');
-      specialists.push({ name, email: '', slots: [] });
+      const email = document.getElementById('newSpecEmail').value.trim();
+      if (!name || !email) {
+        alert('يرجى إدخال اسم وبريد الأخصائي');
+        return;
+      }
+      // أضف الأخصائي مع حقل توافر فارغ
+      specialists.push({ name, email, slots: [] });
+      localStorage.setItem('specs', JSON.stringify(specialists));
       document.getElementById('newSpec').value = '';
-      saveSpecs();
+      document.getElementById('newSpecEmail').value = '';
+      renderSpecs();
+      alert('تم إضافة الأخصائي وحفظه');
     }
+
     function deleteSpec(i) {
       if (confirm('هل تريد حذف هذا الأخصائي؟')) {
         specialists.splice(i, 1);
-        saveSpecs();
+        localStorage.setItem('specs', JSON.stringify(specialists));
+        renderSpecs();
       }
     }
 
-    // *** تخزين المواعيد ***
-    function saveAppts() {
-      localStorage.setItem('appts', JSON.stringify(appts));
-      renderAppts();
-    }
-
-    // *** عرض جدول المواعيد ***
+    // ===== عرض جدول المواعيد =====
     function renderAppts(list = appts) {
       const tbody = document.getElementById('apptTableBody');
       tbody.innerHTML = '';
       list.forEach((a, idx) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
           <td class="border p-2">${idx + 1}</td>
           <td class="border p-2">${a.child}</td>
           <td class="border p-2">${a.day}</td>
@@ -315,14 +320,15 @@
           <td class="border p-2">${a.spec || '-'}</td>
           <td class="border p-2">
             <button onclick="toggleRepl(${idx})" class="btn-small">
-              ${a.type === 'تعويض' ? '❌' : 'تعويض'}
+              ${a.type === 'تعويض' ? '✔' : 'تعويض'}
             </button>
           </td>
         `;
-        tbody.appendChild(row);
+        tbody.appendChild(tr);
       });
     }
 
+    // ===== إضافة مواعيد الأطفال =====
     function addAppts() {
       const child = document.getElementById('childName').value.trim();
       const day   = document.getElementById('day').value;
@@ -345,7 +351,7 @@
         return;
       }
       depts.forEach(dept => {
-        // ابحث عن أول أخصائي متاح في هذا اليوم والوقت
+        // ابحث عن أول أخصائي متاح هنا
         const specObj = specialists.find(s => (s.slots || []).includes(day + ' ' + time));
         appts.push({
           child,
@@ -357,15 +363,18 @@
           type: 'عادي'
         });
       });
-      // إعادة تعيين الحقول
+      // مسح الحقول
       document.getElementById('childName').value = '';
       document.querySelectorAll('.dept-chk').forEach(cb => cb.checked = false);
-      saveAppts();
+      localStorage.setItem('appts', JSON.stringify(appts));
+      renderAppts();
+      alert('تم إضافة المواعيد وحفظها');
     }
 
     function toggleRepl(i) {
       appts[i].type = appts[i].type === 'تعويض' ? 'عادي' : 'تعويض';
-      saveAppts();
+      localStorage.setItem('appts', JSON.stringify(appts));
+      renderAppts();
     }
 
     function filterAppts() {
@@ -373,7 +382,7 @@
       renderAppts(appts.filter(a => a.spec.toLowerCase() === f));
     }
 
-    // *** إرسال جدول الأخصائي عبر EmailJS ***
+    // ===== إرسال جدول الأخصائي بالبريد الإلكتروني =====
     function sendScheduleEmail() {
       const email = document.getElementById('specEmail').value.trim();
       const name  = document.getElementById('filterSpec').value.trim();
@@ -419,9 +428,13 @@
       });
     }
 
-    // initial render
-    renderSpecs();
-    renderAppts();
+    // ===== تحميل البيانات عند فتح الصفحة للمرة الأولى =====
+    window.onload = () => {
+      specialists = JSON.parse(localStorage.getItem('specs') || '[]');
+      appts       = JSON.parse(localStorage.getItem('appts') || '[]');
+      renderSpecs();
+      renderAppts();
+    };
   </script>
 </body>
 </html>

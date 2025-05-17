@@ -1,97 +1,241 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>نظام مواعيد المركز</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- EmailJS SDK -->
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
   <style>
-    body { font-family: 'Cairo', sans-serif; }
+    /* ===== ألوان الهوية البصرية ===== */
+    :root {
+      --color-mint: #87C8BC;
+      --color-beige: #F5E6C8;
+      --color-navy: #1F2F3D;
+      --color-light: #FFF9E6;
+      --color-bg: #CDEDE6;
+      --font-base: 'Cairo', sans-serif;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: var(--font-base);
+      background-color: var(--color-bg);
+      color: var(--color-navy);
+      line-height: 1.5;
+    }
+    header {
+      background-color: var(--color-mint);
+      padding: 20px;
+      text-align: center;
+    }
+    header img {
+      height: 60px;
+      vertical-align: middle;
+    }
+    header h1 {
+      display: inline-block;
+      margin: 0 0 0 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+    }
+    main {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 10px;
+    }
+    h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid var(--color-mint);
+      display: inline-block;
+      padding-bottom: 5px;
+    }
+    section {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .form-row > * {
+      flex: 1;
+      min-width: 200px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="email"],
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: normal;
+    }
+    button {
+      background-color: var(--color-mint);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: var(--color-navy);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background-color: var(--color-beige);
+      color: var(--color-navy);
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: var(--color-light);
+    }
+    .btn-small {
+      background-color: var(--color-beige);
+      color: var(--color-navy);
+      padding: 6px 12px;
+      font-size: 12px;
+      margin: 0;
+    }
+    .btn-small:hover {
+      background-color: var(--color-navy);
+      color: #fff;
+    }
+    @media (max-width: 768px) {
+      .form-row {
+        flex-direction: column;
+      }
+      header h1 {
+        display: block;
+        margin-top: 10px;
+      }
+    }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-  <header class="bg-yellow-300 p-6 text-center text-2xl font-bold text-gray-800">
-    نظام إدارة مواعيد المركز
+<body>
+  <header>
+    <img src="logo.png" alt="شعار المركز" />
+    <h1>نظام مواعيد المركز</h1>
   </header>
-  <div class="max-w-6xl mx-auto p-4 space-y-8">
+  <main>
 
     <!-- 1) إدارة الأخصائيين -->
-    <section class="bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-semibold mb-4">1. إدارة الأخصائيين</h2>
-      <div class="flex gap-2 mb-4">
-        <input id="newSpec" type="text" placeholder="اسم الأخصائي" class="flex-1 border rounded p-2">
-        <button onclick="addSpec()" class="bg-green-500 text-white px-4 rounded">إضافة</button>
+    <section>
+      <h2>1. إدارة الأخصائيين</h2>
+      <div class="form-row">
+        <input type="text" id="newSpec" placeholder="اسم الأخصائي (مثال: أحمد)" />
+        <button onclick="addSpec()">إضافة أخصائي</button>
       </div>
-      <table class="w-full border-collapse">
+      <table>
         <thead>
-          <tr class="bg-yellow-200">
-            <th class="border p-2">#</th>
-            <th class="border p-2">الأخصائي</th>
-            <th class="border p-2">توافر</th>
-            <th class="border p-2">حذف</th>
+          <tr>
+            <th>#</th>
+            <th>الأخصائي</th>
+            <th>البريد الإلكتروني</th>
+            <th>توافر</th>
+            <th>حذف</th>
           </tr>
         </thead>
-        <tbody id="specTable" class="text-center"></tbody>
+        <tbody id="specTableBody"></tbody>
       </table>
     </section>
 
     <!-- 2) إدخال مواعيد الأطفال -->
-    <section class="bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-semibold mb-4">2. إدخال مواعيد الأطفال</h2>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <input id="childName" type="text" placeholder="اسم الطفل" class="border rounded p-2">
-        <select id="day" class="border rounded p-2">
+    <section>
+      <h2>2. إدخال مواعيد الأطفال</h2>
+      <div class="form-row">
+        <input type="text" id="childName" placeholder="اسم الطفل" />
+        <select id="day">
           <option>السبت</option><option>الأحد</option><option>الاثنين</option>
           <option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option>
         </select>
-        <select id="timeSlot" class="border rounded p-2">
+        <select id="timeSlot">
           <option>1:00 - 1:40</option><option>1:40 - 2:20</option><option>2:20 - 3:00</option>
         </select>
-        <select id="subscription" class="border rounded p-2">
-          <option>24 جلسة</option><option>36 جلسة</option><option>48 جلسة</option>
-          <option>ساعة اختبار</option><option>ساعتين اختبار</option>
+        <select id="subscription">
+          <option>24 جلسة</option>
+          <option>36 جلسة</option>
+          <option>48 جلسة</option>
+          <option>ساعة اختبار</option>
+          <option>ساعتين اختبار</option>
         </select>
       </div>
-      <div class="mb-4">
-        <span class="font-semibold">الأقسام المطلوبة:</span>
-        <div class="flex flex-wrap gap-4 mt-2">
-          <label><input type="checkbox" class="dept-checkbox"> تعديل سلوك</label>
-          <label><input type="checkbox" class="dept-checkbox"> تخاطب</label>
-          <label><input type="checkbox" class="dept-checkbox"> تنمية مهارات</label>
-          <label><input type="checkbox" class="dept-checkbox"> جلسة نفسية</label>
-          <label><input type="checkbox" class="dept-checkbox"> اختبار ذكاء</label>
+      <div class="form-row">
+        <div class="checkbox-group">
+          <label><input type="checkbox" class="dept-chk" value="تعديل سلوك" /> تعديل سلوك</label>
+          <label><input type="checkbox" class="dept-chk" value="تخاطب" /> تخاطب</label>
+          <label><input type="checkbox" class="dept-chk" value="تنمية مهارات" /> تنمية مهارات</label>
+          <label><input type="checkbox" class="dept-chk" value="جلسة نفسية" /> جلسة نفسية</label>
+          <label><input type="checkbox" class="dept-chk" value="اختبار ذكاء" /> اختبار ذكاء</label>
         </div>
       </div>
-      <button onclick="addAppts()" class="bg-blue-500 text-white px-6 py-2 rounded">حفظ موعد الطفل</button>
+      <button onclick="addAppts()">حفظ موعد الطفل</button>
     </section>
 
     <!-- 3) جدول المواعيد وإرسال -->
-    <section class="bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-semibold mb-4">3. جدول المواعيد</h2>
-      <div class="flex flex-wrap gap-2 mb-4">
-        <input id="filterSpec" type="text" placeholder="تصفية باسم الأخصائي" class="border rounded p-2 flex-1">
-        <button onclick="filterAppts()" class="bg-indigo-500 text-white px-4 rounded">تصفية</button>
-        <button onclick="renderAppts()" class="bg-gray-500 text-white px-4 rounded">عرض الجميع</button>
+    <section>
+      <h2>3. جدول المواعيد</h2>
+      <div class="form-row">
+        <input type="text" id="filterSpec" placeholder="تصفية باسم الأخصائي" />
+        <button onclick="filterAppts()">تصفية</button>
+        <button onclick="renderAppts()">عرض الجميع</button>
       </div>
-      <div class="flex flex-wrap gap-2 mb-4">
-        <input id="specEmail" type="email" placeholder="بريد الأخصائي" class="border rounded p-2 flex-1">
-        <button onclick="sendScheduleEmail()" class="bg-yellow-500 text-gray-800 px-4 rounded">إرسال جدول</button>
+      <div class="form-row">
+        <input type="email" id="specEmail" placeholder="البريد الإلكتروني للأخصائي" />
+        <button onclick="sendScheduleEmail()">إرسال جدول الأخصائي</button>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full table-fixed border-collapse text-center">
+        <table>
           <thead>
-            <tr class="bg-yellow-200">
-              <th class="border p-2 w-1/12">#</th>
-              <th class="border p-2 w-2/12">طفل</th>
-              <th class="border p-2 w-2/12">اليوم</th>
-              <th class="border p-2 w-2/12">الوقت</th>
-              <th class="border p-2 w-2/12">القسم</th>
-              <th class="border p-2 w-1/12">النوع</th>
-              <th class="border p-2 w-2/12">الأخصائي</th>
-              <th class="border p-2 w-1/12">تعويض</th>
+            <tr>
+              <th>#</th>
+              <th>اسم الطفل</th>
+              <th>اليوم</th>
+              <th>الوقت</th>
+              <th>القسم</th>
+              <th>نوع الجلسة</th>
+              <th>الأخصائي</th>
+              <th>تعويض</th>
             </tr>
           </thead>
           <tbody id="apptTableBody"></tbody>
@@ -99,141 +243,185 @@
       </div>
     </section>
 
-  </div>
+  </main>
 
-<script>
-  // Init EmailJS
-  emailjs.init('Ol1_k8IqKWQbPcbNv');
+  <script>
+    // *** تهيئة EmailJS ***
+    emailjs.init('Ol1_k8IqKWQbPcbNv');
 
-  // Load from LocalStorage
-  let specialists = JSON.parse(localStorage.specs||'[]');
-  let appts       = JSON.parse(localStorage.appts||'[]');
+    // *** جلب البيانات من localStorage ***
+    let specialists = JSON.parse(localStorage.getItem('specs') || '[]');
+    let appts       = JSON.parse(localStorage.getItem('appts') || '[]');
 
-  // Render specialists
-  function renderSpecs() {
-    const tb = document.getElementById('specTable');
-    tb.innerHTML = '';
-    specialists.forEach((s,i)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="border p-2">${i+1}</td>
-        <td class="border p-2">${s.name}</td>
-        <td class="border p-2">
-          ${ (s.slots||[]).map(x=>x).join(', ') || '-' }
-        </td>
-        <td class="border p-2">
-          <button onclick="delSpec(${i})" class="bg-red-500 text-white px-2 rounded btn-small">حذف</button>
-        </td>`;
-      tb.appendChild(tr);
-    });
-  }
+    // *** تخزين الأخصائيين ***
+    function saveSpecs() {
+      localStorage.setItem('specs', JSON.stringify(specialists));
+      renderSpecs();
+    }
 
-  function saveSpecs() {
-    localStorage.specs = JSON.stringify(specialists);
-    renderSpecs();
-  }
+    // *** عرض جدول الأخصائيين ***
+    function renderSpecs() {
+      const tbody = document.getElementById('specTableBody');
+      tbody.innerHTML = '';
+      specialists.forEach((s, idx) => {
+        // عرض اسم، بريد، وتوافر
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border p-2">${idx + 1}</td>
+          <td class="border p-2">${s.name}</td>
+          <td class="border p-2">${s.email || '-'}</td>
+          <td class="border p-2">${(s.slots || []).join(', ') || '-'}</td>
+          <td class="border p-2">
+            <button onclick="deleteSpec(${idx})" class="btn-small">حذف</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
 
-  function addSpec() {
-    const name = document.getElementById('newSpec').value.trim();
-    if (!name) return alert('أدخل اسم الأخصائي');
-    specialists.push({name, slots: []});
-    document.getElementById('newSpec').value = '';
-    saveSpecs();
-  }
-  function delSpec(i) {
-    if(confirm('حذف الأخصائي؟')) {
-      specialists.splice(i,1);
+    function addSpec() {
+      const name = document.getElementById('newSpec').value.trim();
+      if (!name) return alert('يجب إدخال اسم الأخصائي');
+      specialists.push({ name, email: '', slots: [] });
+      document.getElementById('newSpec').value = '';
       saveSpecs();
     }
-  }
-
-  // Render appointments
-  function renderAppts(list=appts) {
-    const tb = document.getElementById('apptTableBody');
-    tb.innerHTML = '';
-    list.forEach((a,i)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="border p-2">${i+1}</td>
-        <td class="border p-2">${a.child}</td>
-        <td class="border p-2">${a.day}</td>
-        <td class="border p-2">${a.time}</td>
-        <td class="border p-2">${a.dept}</td>
-        <td class="border p-2">${a.type}</td>
-        <td class="border p-2">${a.spec || '-'}</td>
-        <td class="border p-2">
-          <button onclick="toggleRepl(${i})" class="bg-yellow-400 text-gray-800 px-2 rounded btn-small">
-            ${a.type==='تعويض'?'✔':'تعويض'}
-          </button>
-        </td>`;
-      tb.appendChild(tr);
-    });
-  }
-
-  function saveAppts() {
-    localStorage.appts = JSON.stringify(appts);
-    renderAppts();
-  }
-
-  function addAppts() {
-    const child = document.getElementById('childName').value.trim();
-    const day   = document.getElementById('day').value;
-    const time  = document.getElementById('timeSlot').value;
-    const sub   = document.getElementById('subscription').value;
-    if (!child) { alert('أدخل اسم الطفل'); return; }
-    if (appts.filter(a=>a.day===day&&a.time===time).length >=5) {
-      return alert('الفترة ممتلئة');
+    function deleteSpec(i) {
+      if (confirm('هل تريد حذف هذا الأخصائي؟')) {
+        specialists.splice(i, 1);
+        saveSpecs();
+      }
     }
-    const depts = Array.from(document.querySelectorAll('.dept-checkbox'))
-      .filter(cb=>cb.checked).map(cb=>cb.nextSibling.textContent.trim());
-    if (!depts.length) { alert('اختر قسم'); return; }
-    depts.forEach(dept=>{
-      // pick first matching specialist
-      const specObj = specialists.find(s=> s.slots.includes(day+' '+time) );
-      appts.push({
-        child, day, time, dept,
-        type:'عادي',
-        spec: specObj? specObj.name: '',
-        sub
+
+    // *** تخزين المواعيد ***
+    function saveAppts() {
+      localStorage.setItem('appts', JSON.stringify(appts));
+      renderAppts();
+    }
+
+    // *** عرض جدول المواعيد ***
+    function renderAppts(list = appts) {
+      const tbody = document.getElementById('apptTableBody');
+      tbody.innerHTML = '';
+      list.forEach((a, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border p-2">${idx + 1}</td>
+          <td class="border p-2">${a.child}</td>
+          <td class="border p-2">${a.day}</td>
+          <td class="border p-2">${a.time}</td>
+          <td class="border p-2">${a.dept}</td>
+          <td class="border p-2">${a.sub}</td>
+          <td class="border p-2">${a.spec || '-'}</td>
+          <td class="border p-2">
+            <button onclick="toggleRepl(${idx})" class="btn-small">
+              ${a.type === 'تعويض' ? '❌' : 'تعويض'}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
       });
-    });
-    document.getElementById('childName').value='';
-    document.querySelectorAll('.dept-checkbox').forEach(cb=>cb.checked=false);
-    saveAppts();
-  }
+    }
 
-  function toggleRepl(i) {
-    appts[i].type = appts[i].type==='تعويض'?'عادي':'تعويض';
-    saveAppts();
-  }
+    function addAppts() {
+      const child = document.getElementById('childName').value.trim();
+      const day   = document.getElementById('day').value;
+      const time  = document.getElementById('timeSlot').value;
+      const sub   = document.getElementById('subscription').value;
+      if (!child) {
+        alert('يجب إدخال اسم الطفل');
+        return;
+      }
+      if (appts.filter(a => a.day === day && a.time === time).length >= 5) {
+        alert('هذه الفترة ممتلئة (5 أطفال بالفعل)');
+        return;
+      }
+      // الأقسام المطلوبة
+      const depts = Array.from(document.querySelectorAll('.dept-chk'))
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+      if (!depts.length) {
+        alert('اختر قسماً واحداً على الأقل');
+        return;
+      }
+      depts.forEach(dept => {
+        // ابحث عن أول أخصائي متاح في هذا اليوم والوقت
+        const specObj = specialists.find(s => (s.slots || []).includes(day + ' ' + time));
+        appts.push({
+          child,
+          day,
+          time,
+          dept,
+          sub,
+          spec: specObj ? specObj.name : '',
+          type: 'عادي'
+        });
+      });
+      // إعادة تعيين الحقول
+      document.getElementById('childName').value = '';
+      document.querySelectorAll('.dept-chk').forEach(cb => cb.checked = false);
+      saveAppts();
+    }
 
-  function filterAppts() {
-    const f = document.getElementById('filterSpec').value.trim().toLowerCase();
-    renderAppts(appts.filter(a=>a.spec.toLowerCase()===f));
-  }
+    function toggleRepl(i) {
+      appts[i].type = appts[i].type === 'تعويض' ? 'عادي' : 'تعويض';
+      saveAppts();
+    }
 
-  function sendScheduleEmail() {
-    const email = document.getElementById('specEmail').value.trim();
-    const name  = document.getElementById('filterSpec').value.trim();
-    if (!email||!name) { alert('تأكد من التصفية والبريد'); return; }
-    const list = appts.filter(a=>a.spec.toLowerCase()===name.toLowerCase());
-    if(!list.length) { alert('لا مواعيد للأخصائي'); return; }
-    // build HTML
-    let html = `<h3>جدول مواعيد ${name}</h3><table border="1" cellpadding="5" style="border-collapse:collapse;">`;
-    html+=`<tr style="background:#F9D64E;"><th>طفل</th><th>يوم</th><th>وقت</th><th>قسم</th><th>اشتراك</th><th>نوع</th></tr>`;
-    list.forEach(a=>{
-      html+=`<tr><td>${a.child}</td><td>${a.day}</td><td>${a.time}</td><td>${a.dept}</td><td>${a.sub}</td><td>${a.type}</td></tr>`;
-    });
-    html+=`</table>`;
-    emailjs.send('service_cuzf74k','template_b04f8pi',{
-      to_name: name,
-      to_email: email,
-      schedule_html: html
-    }).then(_=>alert('تم الإرسال!'), e=>alert('خطأ: '+e.text));
-  }
+    function filterAppts() {
+      const f = document.getElementById('filterSpec').value.trim().toLowerCase();
+      renderAppts(appts.filter(a => a.spec.toLowerCase() === f));
+    }
 
-  // initial render
-  renderSpecs(); renderAppts();
-</script>
+    // *** إرسال جدول الأخصائي عبر EmailJS ***
+    function sendScheduleEmail() {
+      const email = document.getElementById('specEmail').value.trim();
+      const name  = document.getElementById('filterSpec').value.trim();
+      if (!email || !name) {
+        alert('تأكد من إدخال البريد واسم الأخصائي في التصفية.');
+        return;
+      }
+      const list = appts.filter(a => a.spec.toLowerCase() === name.toLowerCase());
+      if (!list.length) {
+        alert('لا توجد مواعيد لهذا الأخصائي.');
+        return;
+      }
+      // بناء HTML جدولي
+      let html = `<h3 style="background:var(--color-mint);color:#fff;padding:10px;border-radius:6px;">
+        جدول مواعيد ${name}
+      </h3>`;
+      html += `<table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;width:100%;direction:rtl;">`;
+      html += `<tr style="background:var(--color-beige);font-weight:bold;">
+        <th>طفل</th><th>اليوم</th><th>وقت</th><th>القسم</th><th>اشتراك</th><th>نوع</th>
+      </tr>`;
+      list.forEach(a => {
+        html += `<tr>
+          <td>${a.child}</td>
+          <td>${a.day}</td>
+          <td>${a.time}</td>
+          <td>${a.dept}</td>
+          <td>${a.sub}</td>
+          <td>${a.type}</td>
+        </tr>`;
+      });
+      html += `</table>`;
+
+      emailjs.send('service_cuzf74k', 'template_b04f8pi', {
+        to_name: name,
+        to_email: email,
+        schedule_html: html
+      })
+      .then(_ => {
+        alert('تم إرسال الجدول بنجاح إلى ' + email);
+      })
+      .catch(e => {
+        alert('حدث خطأ أثناء الإرسال: ' + JSON.stringify(e));
+      });
+    }
+
+    // initial render
+    renderSpecs();
+    renderAppts();
+  </script>
 </body>
 </html>

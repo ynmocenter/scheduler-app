@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام مواعيد المركز</title>
-  <!-- استخدام Tailwind CSS للتنسيق البسيط -->
+  <!-- Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
@@ -21,16 +21,14 @@
       text-align: center;
       color: white;
     }
-    h1 {
-      font-size: 1.75rem;
-    }
+    h1 { font-size: 1.75rem; }
     section {
       background: white;
       padding: 1.25rem;
       margin: 1.5rem auto;
       border-radius: 0.5rem;
       max-width: 800px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     label {
       display: block;
@@ -47,7 +45,7 @@
     }
     input:focus, select:focus {
       border-color: #2563EB;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
     }
     button {
       background-color: #2563EB;
@@ -128,7 +126,7 @@
     </div>
     <div class="flex flex-col md:flex-row gap-2 mb-4">
       <button onclick="addSpec()">إضافة أخصائي جديد</button>
-      <button onclick="loadSpecs()" class="btn-small">🔄 إعادة تحميل البيانات</button>
+      <button onclick="loadSpecs()" class="btn-small">🔄 إعادة تحميل الأخصائيين</button>
     </div>
     <div class="overflow-x-auto">
       <table>
@@ -234,6 +232,7 @@
       </table>
     </div>
   </section>
+
 </div>
 
 <script>
@@ -250,7 +249,7 @@
     renderAppts();
   };
 
-  // ===== إدارة الأخصائيين =====
+  // ===== وظائف الأخصائيين =====
   function saveSpecs() {
     localStorage.setItem('specs', JSON.stringify(specialists));
     loadSpecs();
@@ -296,7 +295,7 @@
     saveSpecs();
   }
 
-  // ===== إدارة المواعيد =====
+  // ===== وظائف المواعيد =====
   function saveAppts() {
     localStorage.setItem('appts', JSON.stringify(appointments));
     renderAppts();

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام مواعيد المركز</title>
-  <!-- Tailwind CSS for styling -->
+  <!-- Tailwind CSS for easy styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
@@ -104,7 +104,7 @@
   </header>
 
   <!-- 1) إدارة الأخصائيين -->
-  <section>
+  <section id="section-spec">
     <h2 class="text-xl font-semibold mb-4">1. إدارة الأخصائيين</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
       <div>
@@ -113,7 +113,7 @@
       </div>
       <div>
         <label for="newSpecEmail">البريد الإلكتروني</label>
-        <input type="email" id="newSpecEmail" placeholder="example@email.com"/>
+        <input type="email" id="newSpecEmail" placeholder="ahmed@example.com"/>
       </div>
       <div>
         <label for="newSpecDays">أيام العمل</label>
@@ -125,8 +125,8 @@
       </div>
     </div>
     <div class="flex flex-col md:flex-row gap-2 mb-4">
-      <button onclick="addSpec()">إضافة أخصائي جديد</button>
-      <button onclick="loadSpecs()" class="btn-small">🔄 إعادة تحميل الأخصائيين</button>
+      <button id="btnAddSpec">إضافة أخصائي جديد</button>
+      <button id="btnLoadSpecs" class="btn-small">🔄 إعادة تحميل الأخصائيين</button>
     </div>
     <div class="overflow-x-auto">
       <table>
@@ -146,7 +146,7 @@
   </section>
 
   <!-- 2) إدخال مواعيد الأطفال -->
-  <section>
+  <section id="section-appt">
     <h2 class="text-xl font-semibold mb-4">2. إدخال مواعيد الأطفال</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
       <div>
@@ -189,11 +189,11 @@
         <label><input type="checkbox" class="dept-chk" value="اختبار ذكاء" /> اختبار ذكاء</label>
       </div>
     </div>
-    <button onclick="addAppt()">حفظ موعد الطفل</button>
+    <button id="btnAddAppt">حفظ موعد الطفل</button>
   </section>
 
   <!-- 3) عرض جدول المواعيد وإرسال البريد -->
-  <section>
+  <section id="section-schedule">
     <h2 class="text-xl font-semibold mb-4">3. جدول المواعيد</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div>
@@ -201,8 +201,8 @@
         <input type="text" id="filterSpec" placeholder="مثال: أحمد" />
       </div>
       <div class="flex items-end gap-2">
-        <button onclick="filterAppts()">تصفية</button>
-        <button onclick="renderAppts()">عرض الجميع</button>
+        <button id="btnFilter">تصفية</button>
+        <button id="btnShowAll">عرض الجميع</button>
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -211,7 +211,7 @@
         <input type="email" id="specEmail" placeholder="ahmed@example.com" />
       </div>
       <div class="flex items-end">
-        <button onclick="sendScheduleEmail()">إرسال جدول الأخصائي</button>
+        <button id="btnSendEmail">إرسال جدول الأخصائي</button>
       </div>
     </div>
     <div class="overflow-x-auto">
@@ -233,23 +233,21 @@
     </div>
   </section>
 
-</div>
-
 <script>
   // تهيئة EmailJS
   emailjs.init('Ol1_k8IqKWQbPcbNv');
 
-  // مصفوفتا البيانات في المتصفح
+  // مصفوفتا البيانات مخزّنة في localStorage
   let specialists = JSON.parse(localStorage.getItem('specs') || '[]');
   let appointments = JSON.parse(localStorage.getItem('appts') || '[]');
 
-  // تحميل وعرض البيانات عند فتح الصفحة
+  // عند فتح الصفحة، حمّل وعرض الأخصائيين والمواعيد
   window.onload = () => {
     loadSpecs();
-    renderAppts();
+    loadAppts();
   };
 
-  // ===== وظائف الأخصائيين =====
+  // ===== إدارة الأخصائيين =====
   function saveSpecs() {
     localStorage.setItem('specs', JSON.stringify(specialists));
     loadSpecs();
@@ -295,12 +293,15 @@
     saveSpecs();
   }
 
-  // ===== وظائف المواعيد =====
+  // ===== إدارة المواعيد =====
   function saveAppts() {
     localStorage.setItem('appts', JSON.stringify(appointments));
-    renderAppts();
+    renderAppts(appointments);
   }
-  function renderAppts(list = appointments) {
+  function loadAppts() {
+    renderAppts(appointments);
+  }
+  function renderAppts(list) {
     const tbody = document.getElementById('apptTableBody');
     tbody.innerHTML = '';
     list.forEach((a, idx) => {
@@ -365,7 +366,8 @@
   }
   function filterAppts() {
     const f = document.getElementById('filterSpec').value.trim().toLowerCase();
-    renderAppts(appointments.filter(a => a.spec.toLowerCase() === f));
+    const filtered = appointments.filter(a => a.spec.toLowerCase() === f);
+    renderAppts(filtered);
   }
 
   // ===== إرسال جدول الأخصائي عبر EmailJS =====
@@ -412,6 +414,14 @@
       alert('خطأ أثناء الإرسال: ' + JSON.stringify(e));
     });
   }
+
+  // ربط الأزرار بالوظائف
+  document.getElementById('btnAddSpec').onclick = addSpec;
+  document.getElementById('btnLoadSpecs').onclick = loadSpecs;
+  document.getElementById('btnAddAppt').onclick = addAppt;
+  document.getElementById('btnFilter').onclick = filterAppts;
+  document.getElementById('btnShowAll').onclick = loadAppts;
+  document.getElementById('btnSendEmail').onclick = sendScheduleEmail;
 </script>
 </body>
 </html>

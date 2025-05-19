@@ -43,41 +43,30 @@
   <div class="form-group"><label>الاسم:</label><input id="specName"></div>
   <div class="form-group"><label>القسم:</label><select id="specDept"></select></div>
   <div class="form-group"><label>البريد الإلكتروني:</label><input id="specEmail" type="email"></div>
-  <div class="form-group"><label>أيام العمل:</label><select id="specDays" multiple>
-      <option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option>
-    </select>
-  </div>
+  <div class="form-group"><label>أيام العمل:</label><select id="specDays" multiple><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div>
   <div class="form-group"><label>الفترات المتاحة:</label><select id="specSlots" multiple></select></div>
   <button class="btn" onclick="addSpec()">إضافة أخصائي</button>
-  <table>
-    <thead><tr><th>الاسم</th><th>القسم</th><th>إيميل</th><th>أيام</th><th>فترات</th></tr></thead>
-    <tbody id="tblSpecs"></tbody>
-  </table>
+  <table><thead><tr><th>الاسم</th><th>القسم</th><th>إيميل</th><th>أيام</th><th>فترات</th></tr></thead><tbody id="tblSpecs"></tbody></table>
 </section>
 
 <!-- الأطفال -->
 <section id="children">
   <h2>إدارة الأطفال</h2>
   <div class="form-group"><label>الاسم:</label><input id="childName"></div>
+  <div class="form-group"><label>الأخصائي المعين:</label><input id="childSpec" placeholder="اكتب اسم الأخصائي"></div>
   <div class="form-group"><label>الاحتياجات:</label><select id="childNeeds" multiple></select></div>
   <div class="form-group"><label>خطة الاشتراك:</label><select id="childPlan"></select></div>
-  <div class="form-group"><label>أيام محددة:</label><select id="childDays" multiple>
-      <option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option>
-    </select>
-  </div>
+  <div class="form-group"><label>أيام محددة:</label><select id="childDays" multiple><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div>
   <div class="form-group"><label>الفترات المطلوبة:</label><select id="childSlots" multiple></select></div>
   <button class="btn" onclick="addChild()">إضافة طفل</button>
-  <table>
-    <thead><tr><th>الاسم</th><th>الاحتياجات</th><th>خطة</th><th>أيام</th><th>فترات</th></tr></thead>
-    <tbody id="tblChildren"></tbody>
-  </table>
+  <table><thead><tr><th>الاسم</th><th>أخصائي</th><th>احتياجات</th><th>خطة</th><th>أيام</th><th>فترات</th></tr></thead><tbody id="tblChildren"></tbody></table>
 </section>
 
 <!-- الجدول -->
 <section id="schedule">
   <h2>الجدول الأسبوعي حسب الأقسام</h2>
   <nav class="sub">
-    <button data-sec="تعديل سلوك" class="active">تعديل سلوك</button>
+    <button data-sec="تعديل سلوك">تعديل سلوك</button>
     <button data-sec="تخاطب">تخاطب</button>
     <button data-sec="تنمية مهارات">تنمية مهارات</button>
     <button data-sec="جلسة نفسية">جلسة نفسية</button>
@@ -92,10 +81,7 @@
 <section id="replacements">
   <h2>التعويضات</h2>
   <button class="btn" onclick="showFreeSlots()">عرض فترات التعويض</button>
-  <table>
-    <thead><tr><th>اليوم</th><th>الفترة</th><th>إضافة طفل</th></tr></thead>
-    <tbody id="tblFree"></tbody>
-  </table>
+  <table><thead><tr><th>اليوم</th><th>الفترة</th><th>إضافة طفل</th></tr></thead><tbody id="tblFree"></tbody></table>
 </section>
 
 <script>
@@ -103,7 +89,7 @@
   const depts=['تعديل سلوك','تخاطب','تنمية مهارات','جلسة نفسية','اختبار ذكاء'];
   const plans=['24 جلسة','36 جلسة','ساعة اختبار','ساعتين اختبار','48 جلسة'];
   const slots=['1:00 PM-1:40 PM','1:40 PM-2:20 PM','2:20 PM-3:00 PM','3:20 PM-4:00 PM','4:00 PM-4:40 PM','4:40 PM-5:20 PM','5:20 PM-6:00 PM','6:00 PM-6:40 PM','6:40 PM-7:20 PM','7:20 PM-8:00 PM','8:00 PM-8:40 PM','8:40 PM-9:20 PM'];
-  let specs=[],childs=[],schedule=[];
+  let specs=[], childs=[], schedule=[];
 
   function init(){
     depts.forEach(d=>document.getElementById('specDept').add(new Option(d,d)));
@@ -111,7 +97,10 @@
     plans.forEach(p=>document.getElementById('childPlan').add(new Option(p,p)));
     slots.forEach(s=>document.getElementById('specSlots').add(new Option(s,s)));
     slots.forEach(s=>document.getElementById('childSlots').add(new Option(s,s)));
+    specs.forEach(s=>{}); // placeholder
     setupTabs();
+    showSection('specialists');
+    // populate childSpec on spec add
   }
 
   function showSection(id){
@@ -123,19 +112,22 @@
   document.querySelectorAll('nav.main button').forEach(btn=>btn.onclick=()=>showSection(btn.dataset.target));
 
   function addSpec(){
-    const s={ name:document.getElementById('specName').value, dept:document.getElementById('specDept').value, email:document.getElementById('specEmail').value, days:Array.from(document.getElementById('specDays').selectedOptions).map(o=>o.value), slots:Array.from(document.getElementById('specSlots').selectedOptions).map(o=>o.value)};
-    specs.push(s); renderSpecs();
+    const s={name:document.getElementById('specName').value,dept:document.getElementById('specDept').value,email:document.getElementById('specEmail').value,days:Array.from(document.getElementById('specDays').selectedOptions).map(o=>o.value),slots:Array.from(document.getElementById('specSlots').selectedOptions).map(o=>o.value)};
+    specs.push(s); renderSpecs(); updateChildSpecOptions();
   }
   function renderSpecs(){
     document.getElementById('tblSpecs').innerHTML = specs.map(s=>`<tr><td>${s.name}</td><td>${s.dept}</td><td>${s.email}</td><td>${s.days.join(',')}</td><td>${s.slots.join(',')}</td></tr>`).join('');
   }
+  function updateChildSpecOptions(){
+    const sel=document.getElementById('childSpec'); sel.innerHTML=''; specs.forEach(s=>sel.add(new Option(s.name,s.name)));
+  }
 
   function addChild(){
-    const c={ name:document.getElementById('childName').value, needs:Array.from(document.getElementById('childNeeds').selectedOptions).map(o=>o.value), plan:document.getElementById('childPlan').value, days:Array.from(document.getElementById('childDays').selectedOptions).map(o=>o.value), slots:Array.from(document.getElementById('childSlots').selectedOptions).map(o=>o.value)};
+    const c={name:document.getElementById('childName').value,spec:document.getElementById('childSpec').value,needs:Array.from(document.getElementById('childNeeds').selectedOptions).map(o=>o.value),plan:document.getElementById('childPlan').value,days:Array.from(document.getElementById('childDays').selectedOptions).map(o=>o.value),slots:Array.from(document.getElementById('childSlots').selectedOptions).map(o=>o.value)};
     childs.push(c); renderChilds();
   }
   function renderChilds(){
-    document.getElementById('tblChildren').innerHTML = childs.map(c=>`<tr><td>${c.name}</td><td>${c.needs.join(',')}</td><td>${c.plan}</td><td>${c.days.join(',')}</td><td>${c.slots.join(',')}</td></tr>`).join('');
+    document.getElementById('tblChildren').innerHTML = childs.map(c=>`<tr><td>${c.name}</td><td>${c.spec}</td><td>${c.needs.join(',')}</td><td>${c.plan}</td><td>${c.days.join(',')}</td><td>${c.slots.join(',')}</td></tr>`).join('');
   }
 
   function setupTabs(){
@@ -148,16 +140,14 @@
   function autoAssign(){
     schedule=[];
     childs.forEach(c=>{
-      const max=parseInt(c.plan) || 1; let count=0;
+      const max=parseInt(c.plan)||1; let count=0;
       days.forEach(day=>{ if(count<max && c.days.includes(day)){
         c.slots.forEach(sl=>{ if(count<max){
-          const dept=c.needs[count% c.needs.length];
-          const sp=specs.find(s=>s.dept===dept&&s.days.includes(day)&&s.slots.includes(sl));
-          if(sp){ schedule.push({day,slot:sl,dept,spec:sp.name,child:c.name}); count++; }
-        }});
+          schedule.push({day,slot:sl,dept:c.needs[count%c.needs.length],spec:c.spec,child:c.name});
+          count++; }
+        });
       }});
-    });
-    renderTable(document.querySelector('nav.sub button.active').dataset.sec);
+    }); renderTable(document.querySelector('nav.sub button.active').dataset.sec);
   }
 
   function renderTable(sec){
@@ -182,20 +172,15 @@
           <p>يرجى الاطلاع على جدول مواعيدك للأسبوع القادم:</p>
           <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;">
             <thead>
-              <tr style="background:var(--secondary);color:#000;">
-                <th>اليوم</th><th>الفترة</th><th>الطفل</th><th>القسم</th>
-              </tr>
+              <tr style="background:var(--secondary);color:#000;"><th>اليوم</th><th>الفترة</th><th>الطفل</th><th>القسم</th></tr>
             </thead>
-            <tbody>
-              ${rows}
-            </tbody>
+            <tbody>${rows}</tbody>
           </table>
           <p>في حال وجود أي تعديل أو تعويض الرجاء التواصل.</p>
           <p>مع تحيات إدارة مركز ينمو</p>
         </div>
       `;
-      const subject=`جدولك الأسبوعي - ${s.name}`;
-      window.open(`mailto:${s.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(html)}`);
+      window.open(`mailto:${s.email}?subject=${encodeURIComponent(`جدولك الأسبوعي - ${s.name}`)}&body=${encodeURIComponent(html)}`);
     });
   }
 

@@ -342,7 +342,7 @@
     </div>
   </div>
 
-  <!-- ===== مودال إضافة / تعديل موعد ===== -->
+  <!-- ===== مودال إضافة / تعديل موعد (تم التعديل هنا) ===== -->
   <div id="modal-appointment" class="modal-bg hidden">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل موعد</h2>
@@ -393,10 +393,8 @@
           </select>
         </div>
         <div>
-          <label for="modal-appt-spec" class="block text-sm font-medium">الأخصائي:</label>
-          <select id="modal-appt-spec" required>
-            <!-- سيمتلئ ديناميكيًا بناءً على القسم واليوم والوقت -->
-          </select>
+          <label for="modal-appt-spec" class="block text-sm font-medium">الأخصائي (اكتب الاسم يدويًا):</label>
+          <input type="text" id="modal-appt-spec" placeholder="مثال: د. أحمد" required />
         </div>
         <div>
           <label for="modal-appt-type" class="block text-sm font-medium">نوع الموعد:</label>

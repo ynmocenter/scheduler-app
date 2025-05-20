@@ -1,9 +1,9 @@
 // app.js
-// ============================
-// هنا كلّ المنطق لإدارة:
+// =======================================
+// كلّ المنطق لإدارة:
 // 1) الأطفال والاشتراكات
-// 2) الأخصائيون مع تحديد أقسامهم
-// 3) المواعيد: الاختيار اليدوي للأخصائي بناءً على القسم/اليوم/الوقت
+// 2) الأخصائيون (مع قسم)
+// 3) المواعيد (يدويًا كتابة اسم الأخصائي بدون قائمة منسدلة)
 // 4) التقارير الأسبوعية
 // 5) إرسال جدول الأخصائي عبر EmailJS
 
@@ -29,7 +29,7 @@ let children     = {}; // بيانات جميع الأطفال
 let specialists  = {}; // بيانات جميع الأخصائيين (مع dept)
 let appointments = {}; // بيانات جميع المواعيد
 
-// 4) عناصر DOM الأساسية
+// 4) عناصر DOM
 const toastContainer = document.getElementById("toast-container");
 
 // تبويبات
@@ -65,7 +65,7 @@ const btnSendEmail      = document.getElementById("btn-send-email");
 const sendFilterInput   = document.getElementById("send-filter-spec");
 const emailSpecInput    = document.getElementById("email-spec");
 
-// === مودال إضافة/تعديل طفل ===
+// === مودال إضافة / تعديل طفل ===
 const modalChild         = document.getElementById("modal-child");
 const formModalChild     = document.getElementById("form-modal-child");
 const modalChildName     = document.getElementById("modal-child-name");
@@ -75,7 +75,7 @@ const modalChildPaused   = document.getElementById("modal-child-paused");
 const modalChildCancel   = document.getElementById("modal-child-cancel");
 let editingChildKey      = null;
 
-// === مودال إضافة/تعديل أخصائي ===
+// === مودال إضافة / تعديل أخصائي ===
 const modalSpecialist      = document.getElementById("modal-specialist");
 const formModalSpecialist  = document.getElementById("form-modal-specialist");
 const modalSpecName        = document.getElementById("modal-spec-name");
@@ -86,20 +86,21 @@ const modalSpecTimes       = document.getElementById("modal-spec-times");
 const modalSpecCancel      = document.getElementById("modal-spec-cancel");
 let editingSpecialistKey   = null;
 
-// === مودال إضافة/تعديل موعد ===
+// === مودال إضافة / تعديل موعد ===
 const modalAppointment       = document.getElementById("modal-appointment");
 const formModalAppointment   = document.getElementById("form-modal-appointment");
 const modalApptChild         = document.getElementById("modal-appt-child");
 const modalApptDay           = document.getElementById("modal-appt-day");
 const modalApptTime          = document.getElementById("modal-appt-time");
 const modalApptDept          = document.getElementById("modal-appt-dept");
+// حقل الأخصائي بات هو حقل نصي
 const modalApptSpec          = document.getElementById("modal-appt-spec");
 const modalApptType          = document.getElementById("modal-appt-type");
 const modalApptCancel        = document.getElementById("modal-appt-cancel");
 let editingAppointmentKey    = null;
 
 // -------------------------------------------------
-// 5) دوال Toast لإظهار التنبيهات
+// 5) دوال Toast لأي تنبيه
 // -------------------------------------------------
 function showToast(message, type = "success") {
   const div = document.createElement("div");
@@ -110,7 +111,7 @@ function showToast(message, type = "success") {
 }
 
 // -------------------------------------------------
-// 6) إدارة التبويبات (Tabs): إظهار / إخفاء القسم
+// 6) إدارة التبويبات (Tabs)
 // -------------------------------------------------
 function deactivateAllTabs() {
   [tabChildrenSection, tabSpecialistsSection, tabAppointmentsSection, tabReportsSection, tabSendSection]
@@ -152,18 +153,18 @@ const childrenRef     = ref(db, "children");
 const specialistsRef  = ref(db, "specialists");
 const appointmentsRef = ref(db, "appointments");
 
-// الاستماع للتغييرات في بيانات الأطفال
+// استماع لتغييرات بيانات الأطفال
 onValue(childrenRef, snapshot => {
   children = snapshot.val() || {};
   renderChildren();
   populateChildDropdown();
 });
-// الاستماع للتغييرات في بيانات الأخصائيين
+// استماع لتغييرات بيانات الأخصائيين
 onValue(specialistsRef, snapshot => {
   specialists = snapshot.val() || {};
   renderSpecialists();
 });
-// الاستماع للتغييرات في بيانات المواعيد
+// استماع لتغييرات بيانات المواعيد
 onValue(appointmentsRef, snapshot => {
   appointments = snapshot.val() || {};
   renderAppointments();
@@ -225,7 +226,6 @@ function openAddChild() {
   modalChildPaused.value  = "false";
   modalChild.classList.remove("hidden");
 }
-// تحرير طفل موجود
 window.openEditChild = function(key) {
   editingChildKey = key;
   const ch = children[key];
@@ -235,13 +235,11 @@ window.openEditChild = function(key) {
   modalChildPaused.value   = ch.paused;
   modalChild.classList.remove("hidden");
 };
-// حذف طفل
 window.deleteChild = function(key) {
   if (!confirm("هل تريد حذف هذا الطفل؟")) return;
   remove(ref(db, "children/" + key));
   showToast("تم حذف بيانات الطفل", "info");
 };
-// حفظ بيانات الطفل (إضافة/تعديل)
 formModalChild.addEventListener("submit", (e) => {
   e.preventDefault();
   const name    = modalChildName.value.trim();
@@ -342,7 +340,6 @@ function openAddSpecialist() {
   modalSpecDept.value   = "تعديل سلوك";
   modalSpecialist.classList.remove("hidden");
 }
-// تحرير أخصائي موجود
 window.openEditSpecialist = function(key) {
   editingSpecialistKey = key;
   const sp = specialists[key];
@@ -353,7 +350,6 @@ window.openEditSpecialist = function(key) {
   modalSpecTimes.value = sp.times.join(",");
   modalSpecialist.classList.remove("hidden");
 };
-// حذف أخصائي
 window.deleteSpecialist = function(key) {
   if (!confirm("هل تريد حذف هذا الأخصائي؟")) return;
   remove(ref(db, "specialists/" + key));
@@ -401,27 +397,7 @@ function populateChildDropdown() {
 }
 
 // -------------------------------------------------
-// 13) ملء قائمة الأخصائيين في مودال الموعد بناءً على القسم/اليوم/الوقت
-// -------------------------------------------------
-function populateSpecialistDropdown() {
-  const selectedDept = modalApptDept.value;
-  const selectedDay  = modalApptDay.value;
-  const selectedTime = modalApptTime.value;
-  modalApptSpec.innerHTML = `<option value="">-- اختر الأخصائي --</option>`;
-  Object.keys(specialists).forEach(key => {
-    const sp = specialists[key];
-    // نختار الأخصائي إذا كان قسمه يساوي القسم المحدد، ويوجد في اليوم المحدد، ويعمل في الوقت المحدد
-    if (sp.dept === selectedDept && sp.days.includes(selectedDay) && sp.times.includes(selectedTime)) {
-      const opt = document.createElement("option");
-      opt.value = sp.name;
-      opt.textContent = sp.name;
-      modalApptSpec.appendChild(opt);
-    }
-  });
-}
-
-// -------------------------------------------------
-// 14) عرض جدول المواعيد (renderAppointments)
+// 13) عرض جدول المواعيد (renderAppointments)
 // -------------------------------------------------
 function renderAppointments() {
   tableAppointmentsBody.innerHTML = "";
@@ -470,16 +446,16 @@ function renderAppointments() {
 }
 
 // -------------------------------------------------
-// 15) فتح مودال إضافة/تعديل موعد
+// 14) فتح مودال إضافة / تعديل موعد
 // -------------------------------------------------
 function openAddAppointment() {
   editingAppointmentKey = null;
   formModalAppointment.reset();
-  modalApptDept.value  = "";
-  modalApptSpec.innerHTML = `<option value="">-- اختر الأخصائي --</option>`;
   modalApptChild.value = "";
   modalApptDay.value   = "السبت";
   modalApptTime.value  = "1:00 - 1:40";
+  modalApptDept.value  = "";
+  modalApptSpec.value  = "";       // حقل نصي يدوياً
   modalApptType.value  = "regular";
   modalAppointment.classList.remove("hidden");
 }
@@ -490,10 +466,8 @@ window.openEditAppointment = function(key) {
   modalApptDay.value   = ap.day;
   modalApptTime.value  = ap.time;
   modalApptDept.value  = ap.dept;
+  modalApptSpec.value  = ap.spec;  // نضع الاسم المكتوب مسبقًا
   modalApptType.value  = ap.status === "makeup" ? "makeup" : "regular";
-  // املأ قائمة الأخصائيين بناءً على القسم/اليوم/الوقت
-  populateSpecialistDropdown();
-  modalApptSpec.value  = ap.spec || "";
   modalAppointment.classList.remove("hidden");
 };
 window.deleteAppointment = function(key) {
@@ -508,22 +482,18 @@ window.deleteAppointment = function(key) {
   showToast("تم حذف الموعد", "info");
 };
 
-// عند تغيير القسم أو اليوم أو الوقت، أعد ملء قائمة الأخصائيين تلقائيًا
-modalApptDept.addEventListener("change", populateSpecialistDropdown);
-modalApptDay.addEventListener("change", populateSpecialistDropdown);
-modalApptTime.addEventListener("change", populateSpecialistDropdown);
-
+// معالجة حفظ الموعد
 formModalAppointment.addEventListener("submit", (e) => {
   e.preventDefault();
   const childId = modalApptChild.value;
   const day     = modalApptDay.value;
   const time    = modalApptTime.value;
   const dept    = modalApptDept.value;
-  const spec    = modalApptSpec.value;
+  const spec    = modalApptSpec.value.trim();   // نأخذ الاسم المكتوب يدويًا
   const status  = modalApptType.value; // "regular" أو "makeup"
 
   if (!childId || !dept || !spec) {
-    showToast("يرجى اختيار الطفل والقسم والأخصائي", "error");
+    showToast("يرجى اختيار الطفل وكتابة القسم والأخصائي", "error");
     return;
   }
   if (children[childId].paused === "true") {
@@ -549,20 +519,20 @@ formModalAppointment.addEventListener("submit", (e) => {
       day,
       time,
       dept,
-      spec,
+      spec,              // الاسم المكتوب يدويًا
       status,
       createdAt: new Date().toISOString()
     });
     showToast("تمت إضافة الموعد بنجاح", "success");
   } else {
     const oldAp = appointments[editingAppointmentKey];
-    // إذا كنا نغيّر من “تعويض” إلى “عادي”، نقص جلسة ثانية:
+    // تعديل من "تعويض" إلى "عادي" → نقص جلسة
     if (oldAp.status === "makeup" && status === "regular") {
       update(ref(db, "children/" + childId), {
         sessionsLeft: children[childId].sessionsLeft - 1
       });
     }
-    // إذا نغيّرنا من “عادي” إلى “تعويض”، نعيد جلسة:
+    // تعديل من "عادي" إلى "تعويض" → استرجاع جلسة
     if (oldAp.status === "regular" && status === "makeup") {
       update(ref(db, "children/" + childId), {
         sessionsLeft: children[childId].sessionsLeft + 1
@@ -586,7 +556,7 @@ modalApptCancel.addEventListener("click", () => {
 btnAddAppointment.addEventListener("click", openAddAppointment);
 
 // -------------------------------------------------
-// 16) تسجيل غياب أو فتح تعويض
+// 15) تسجيل غياب أو فتح تعويض
 // -------------------------------------------------
 window.markMissed = function(key) {
   update(ref(db, "appointments/" + key), { status: "missed" });
@@ -600,14 +570,13 @@ window.openMakeupAppointment = function(missedKey) {
   modalApptDay.value   = missedAppt.day;
   modalApptTime.value  = missedAppt.time;
   modalApptDept.value  = missedAppt.dept;
+  modalApptSpec.value  = missedAppt.spec;   // نستخدم الاسم المكتوب مسبقًا
   modalApptType.value  = "makeup";
-  populateSpecialistDropdown();
-  modalApptSpec.value  = missedAppt.spec;
   modalAppointment.classList.remove("hidden");
 };
 
 // -------------------------------------------------
-// 17) إرسال جدول الأخصائي عبر EmailJS
+// 16) إرسال جدول الأخصائي عبر EmailJS
 // -------------------------------------------------
 btnSendEmail.addEventListener("click", () => {
   const specName = sendFilterInput.value.trim();
@@ -655,7 +624,7 @@ btnSendEmail.addEventListener("click", () => {
 });
 
 // -------------------------------------------------
-// 18) التقارير الأسبوعية
+// 17) التقارير الأسبوعية
 // -------------------------------------------------
 function renderReports() {
   reportExpiringChildren.innerHTML = "";
@@ -691,7 +660,7 @@ function renderReports() {
 }
 
 // -------------------------------------------------
-// 19) التهيئة عند تحميل الصفحة
+// 18) التهيئة عند تحميل الصفحة
 // -------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   deactivateAllTabs();

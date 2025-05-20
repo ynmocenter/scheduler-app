@@ -1,13 +1,10 @@
 // firebase-config.js
-// =========================
-// تهيئة Firebase الخاصة بمشروعك
-// تضمن المفتاح وبيانات المشروع كما زودتنا بها.
 
-// استدعاء الدوال اللازمة من مكتبة Firebase
+// 1) استيراد دوال Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase }    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-// البيانات التي زودتنا بها:
+// 2) إعدادات مشروع Firebase (غيّر القيم إذا تغيّرت في لوحة تحكم Firebase لديك)
 const firebaseConfig = {
   apiKey: "AIzaSyBinpejpZQv71xxhJrlYcET-uNLPL0pROY",
   authDomain: "ynmo-center-scheduler.firebaseapp.com",
@@ -18,11 +15,8 @@ const firebaseConfig = {
   appId: "1:287665928063:web:67f6bccd66a25ef0118c4a"
 };
 
-// تهيئة التطبيق
+// 3) تهيئة تطبيق Firebase
 const app = initializeApp(firebaseConfig);
 
-// الحصول على المرجعية لقاعدة البيانات
-const db = getDatabase(app);
-
-// نصدر المرجعية للاستخدام في app.js
-export { db };
+// 4) الحصول على كائن قاعدة البيانات (Realtime Database)
+export const db = getDatabase(app);

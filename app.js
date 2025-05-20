@@ -1,12 +1,6 @@
 // app.js
-// =======================================
-// كلّ المنطق لإدارة:
-// 1) الأطفال والاشتراكات
-// 2) الأخصائيون (مع قسم)
-// 3) المواعيد (يدويًا كتابة اسم الأخصائي بدون قائمة منسدلة)
-// 4) التقارير الأسبوعية
-// 5) إرسال جدول الأخصائي عبر EmailJS
 
+// =======================================
 // 1) استدعاء Firebase (قاعدة البيانات) من ملف firebase-config.js
 import { db } from "./firebase-config.js";
 import {
@@ -19,12 +13,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 // 2) إعداد EmailJS
+// استخدم المفتاح العام (Public Key) الذي حصلت عليه من EmailJS
 const EMAILJS_USER_ID     = "Ol1_k8IqKWQbPcbNv";
 const EMAILJS_SERVICE_ID  = "service_cuzf74k";
 const EMAILJS_TEMPLATE_ID = "template_b04f8pi";
 emailjs.init(EMAILJS_USER_ID);
 
-// 3) متغيّرات عالمية
+// 3) متغيّرات عالمية لحفظ البيانات مؤقتًا من Firebase
 let children     = {}; // بيانات جميع الأطفال
 let specialists  = {}; // بيانات جميع الأخصائيين (مع dept)
 let appointments = {}; // بيانات جميع المواعيد
@@ -93,14 +88,14 @@ const modalApptChild         = document.getElementById("modal-appt-child");
 const modalApptDay           = document.getElementById("modal-appt-day");
 const modalApptTime          = document.getElementById("modal-appt-time");
 const modalApptDept          = document.getElementById("modal-appt-dept");
-// حقل الأخصائي بات هو حقل نصي
+// حقل الأخصائي أصبح حقل نصي
 const modalApptSpec          = document.getElementById("modal-appt-spec");
 const modalApptType          = document.getElementById("modal-appt-type");
 const modalApptCancel        = document.getElementById("modal-appt-cancel");
 let editingAppointmentKey    = null;
 
 // -------------------------------------------------
-// 5) دوال Toast لأي تنبيه
+// 5) دوال Toast لإظهار التنبيهات
 // -------------------------------------------------
 function showToast(message, type = "success") {
   const div = document.createElement("div");
@@ -216,7 +211,7 @@ function renderChildren() {
 }
 
 // -------------------------------------------------
-// 9) فتح المودال لإضافة طفل
+// 9) فتح المودال لإضافة طفل أو تعديل بياناته
 // -------------------------------------------------
 function openAddChild() {
   editingChildKey = null;
@@ -332,7 +327,7 @@ function renderSpecialists() {
 }
 
 // -------------------------------------------------
-// 11) فتح المودال لإضافة أخصائي
+// 11) فتح المودال لإضافة أو تعديل أخصائي
 // -------------------------------------------------
 function openAddSpecialist() {
   editingSpecialistKey = null;
@@ -593,7 +588,7 @@ btnSendEmail.addEventListener("click", () => {
     showToast("لا توجد مواعيد لهذا الأخصائي", "error");
     return;
   }
-  // أنشئ جدول HTML صغير داخل البريد:
+  // أنشئ جدول HTML داخل البريد:
   let htmlTable = `
     <h3 style="background: var(--clr-header-bg); color: white; padding: 8px; border-radius: 4px; text-align: center;">
       جدول مواعيد ${specName}
@@ -618,9 +613,22 @@ btnSendEmail.addEventListener("click", () => {
     to_name : specName,
     schedule_html: htmlTable
   };
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-    .then(() => showToast(`تم إرسال جدول ${specName} بنجاح`, "success"))
-    .catch(() => showToast("خطأ أثناء الإرسال", "error"));
+
+  // نمرّر Public Key كوسيط رابع (لضمان عمل الإرسال):
+  emailjs.send(
+    EMAILJS_SERVICE_ID,
+    EMAILJS_TEMPLATE_ID,
+    templateParams,
+    EMAILJS_USER_ID
+  )
+    .then((response) => {
+      console.log("EmailJS response:", response);
+      showToast(`تم إرسال جدول ${specName} بنجاح`, "success");
+    })
+    .catch((error) => {
+      console.error("Error sending EmailJS:", error);
+      showToast("خطأ أثناء الإرسال، الرجاء التحقق من إعدادات EmailJS", "error");
+    });
 });
 
 // -------------------------------------------------

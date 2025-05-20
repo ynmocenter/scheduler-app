@@ -1,167 +1,423 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام مواعيد المركز</title>
+
+  <!-- ===== 1) Tailwind CSS (CDN) ===== -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ===== 2) الخطّ العربي Tajawal ===== -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+
+  <!-- ===== 3) EmailJS SDK ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <!-- ===== 4) تهيئة Firebase (نستدعي ملفنا لاحقًا) ===== -->
+  <script type="module" src="./firebase-config.js"></script>
+
+  <!-- ===== 5) CSS مخصّص إضافي ===== -->
   <style>
-    :root {--primary:#012A4A;--secondary:#ADE8F4;--behavior:#FFCDB2;--speech:#BDE0FE;--skill:#FED7C3;--psych:#D3BDE0;--iq:#E8D3FE;--bg:#f5f5f5;--text:#012A4A;}
-    *{box-sizing:border-box;}
-    body{font-family:Arial,sans-serif;margin:0;padding:0;background:var(--bg);color:var(--text);}
-    header{background:var(--primary);color:#fff;padding:10px;display:flex;align-items:center;justify-content:center;}
-    nav.main, nav.sub{background:var(--secondary);padding:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
-    nav.main button, nav.sub button{background:var(--primary);color:#fff;border:none;padding:6px 12px;cursor:pointer;border-radius:4px;}
-    nav.main button.active, nav.sub button.active{background:var(--text);}
-    section{display:none;padding:20px;}
-    section.active{display:block;}
-    .form-group{margin-bottom:12px;}
-    label{display:block;margin-bottom:4px;font-weight:bold;}
-    input,select{width:100%;padding:6px;margin-bottom:8px;border:1px solid #ccc;border-radius:4px;}
-    select[multiple]{height:100px;}
-    table{width:100%;border-collapse:collapse;margin-top:10px;}
-    th,td{border:1px solid #ccc;padding:8px;text-align:center;}
-    th{background:var(--secondary);}
-    .btn{background:var(--primary);color:#fff;border:none;padding:6px 12px;cursor:pointer;border-radius:4px;}
-    .delete-btn{background:#e63946;}
-    .dept-تعديل\ سلوك{background:var(--behavior);} .dept-تخاطب{background:var(--speech);} .dept-تنمية\ مهارات{background:var(--skill);} .dept-جلسة\ نفسية{background:var(--psych);} .dept-اختبار\ ذكاء{background:var(--iq);} .state-محجوز{opacity:1;} .state-متاح{opacity:0.3;}
+    html, body {
+      margin: 0; 
+      padding: 0; 
+      height: 100%;
+      font-family: 'Tajawal', sans-serif;
+      background-color: #F7F9FA;
+      color: #1F2937;
+    }
+    :root {
+      --clr-primary:   #0B2545;  /* أزرق داكن */
+      --clr-accent:    #64C8B0;  /* مينت */
+      --clr-card-bg:   #FFFFFF;  /* أبيض للبطاقات */
+      --clr-border:    #E5E7EB;  /* رمادي فاتح للحدود */
+      --clr-header-bg: #0B2545;  /* خلفية الشريط العلوي */
+      --clr-toast-ok:  #34D399;  /* أخضر للتنبيه الناجح */
+      --clr-toast-err: #F87171;  /* أحمر للتنبيه بالخطأ */
+      --clr-toast-info:#FBBF24;  /* أصفر للتنبيه المعلوماتي */
+    }
+
+    /* === الشريط العلوي (Header) === */
+    header {
+      background-color: var(--clr-header-bg);
+      height: 56px;             /* ارتفاع ثابت للشريط */
+      display: flex;
+      align-items: center;
+      justify-content: center;  /* عنوان الوسط */
+      position: relative;
+      padding: 0 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    /* الشعار في اليسار */
+    .logo-img {
+      position: absolute;
+      left: 1rem;
+      height: 40px;    /* الشعار بارتفاع 40px */
+      width: auto;
+      object-contain;
+    }
+    /* عنوان النظام في المنتصف */
+    header h1 {
+      font-size: 1.375rem; /* تقريبًا 22px */
+      font-weight: 700;
+      color: white;
+      margin: 0;
+    }
+
+    /* === أزرار ونصوص عامة === */
+    .btn-primary {
+      @apply bg-accent text-white font-medium py-2 px-4 rounded shadow hover:bg-opacity-90 transition;
+    }
+    .btn-tab {
+      @apply text-sm py-2 px-4 font-medium border-b-2 border-transparent hover:border-accent transition;
+    }
+    .btn-tab-active {
+      border-bottom-color: var(--clr-accent);
+      @apply text-accent font-semibold;
+    }
+    .toast {
+      @apply fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-md text-white text-sm text-center;
+      max-width: 80%;
+    }
+    .toast-success { background-color: var(--clr-toast-ok); }
+    .toast-error   { background-color: var(--clr-toast-err); }
+    .toast-info    { background-color: var(--clr-toast-info); }
+
+    /* بطاقات (Cards) */
+    .card {
+      @apply bg-card-bg p-6 rounded-lg shadow-md;
+    }
+
+    /* === تنسيق الجداول الاحترافي (Styled Tables) === */
+    .styled-table {
+      @apply table-auto w-full border-collapse mt-4;
+    }
+    .styled-table th, .styled-table td {
+      @apply border border-clr-border px-4 py-2 text-center text-base;
+    }
+    .styled-table th {
+      @apply bg-gray-100 font-medium text-primary;
+    }
+    .styled-table tr:nth-child(even) {
+      @apply bg-gray-50;
+    }
+    .styled-table tr:hover {
+      @apply bg-gray-100;
+    }
+
+    /* النماذج (Forms) */
+    input, select {
+      @apply w-full mt-1 p-2 border border-clr-border rounded focus:ring-2 focus:ring-accent focus:outline-none text-sm;
+    }
+    .checkbox-group label {
+      @apply flex items-center gap-2 text-sm;
+    }
+
+    /* خلفية المودال (Dark overlay) */
+    .modal-bg {
+      @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+    }
+    /* صندوق المودال */
+    .modal-card {
+      @apply bg-white p-6 rounded-lg shadow-lg w-full max-w-md;
+    }
   </style>
 </head>
 <body>
-<header><h1>نظام مواعيد المركز</h1></header>
-<nav class="main">
-  <button data-target="specialists" class="active">الأخصائيون</button>
-  <button data-target="children">الأطفال</button>
-  <button data-target="schedule">الجدول</button>
-  <button data-target="replacements">التعويضات</button>
-</nav>
 
-<section id="specialists" class="active">
-  <h2>إدارة الأخصائيين</h2>
-  <div class="form-group"><label>الاسم:</label><input id="specName"></div>
-  <div class="form-group"><label>القسم:</label><select id="specDept"></select></div>
-  <div class="form-group"><label>الإيميل:</label><input id="specEmail" type="email"></div>
-  <div class="form-group"><label>أيام العمل:</label><select id="specDays" multiple><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div>
-  <div class="form-group"><label>الفترات المتاحة:</label><select id="specSlots" multiple></select></div>
-  <button class="btn" onclick="addSpec()">إضافة أخصائي</button>
-  <table><thead><tr><th>الاسم</th><th>القسم</th><th>إيميل</th><th>أيام</th><th>فترات</th><th>إجراء</th></tr></thead><tbody id="tblSpecs"></tbody></table>
-</section>
+  <!-- ===== HEADER (الشعار + عنوان النظام) ===== -->
+  <header>
+    <img src="assets/logo.png" alt="شعار المركز" class="logo-img" />
+    <h1>نظام مواعيد المركز</h1>
+  </header>
 
-<section id="children">
-  <h2>إدارة الأطفال</h2>
-  <div class="form-group"><label>الاسم:</label><input id="childName"></div>
-  <div class="form-group"><label>الأخصائي:</label><input id="childSpec" placeholder="اكتب اسم الأخصائي"></div>
-  <div class="form-group"><label>الاحتياجات:</label><select id="childNeeds" multiple></select></div>
-  <div class="form-group"><label>خطة الاشتراك:</label><select id="childPlan"></select></div>
-  <div class="form-group"><label>أيام (اختر):</label><select id="childDays" multiple><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div>
-  <div class="form-group"><label>فترات (اختر):</label><select id="childSlots" multiple></select></div>
-  <button class="btn" onclick="addChild()">إضافة طفل</button>
-  <table><thead><tr><th>الطفل</th><th>أخصائي</th><th>احتياجات</th><th>خطة</th><th>أيام</th><th>فترات</th><th>إجراء</th></tr></thead><tbody id="tblChildren"></tbody></table>
-</section>
+  <!-- ===== المحتوى الرئيسي ===== -->
+  <main class="container mx-auto px-4 py-6 space-y-8">
 
-<section id="schedule">
-  <h2>الجدول الأسبوعي حسب الأقسام</h2>
-  <nav class="sub">
-    <button data-sec="تعديل سلوك">تعديل سلوك</button>
-    <button data-sec="تخاطب">تخاطب</button>
-    <button data-sec="تنمية مهارات">تنمية مهارات</button>
-    <button data-sec="جلسة نفسية">جلسة نفسية</button>
-    <button data-sec="اختبار ذكاء">اختبار ذكاء</button>
-  </nav>
-  <div id="scheduleContainer"></div>
-  <button class="btn" onclick="autoAssign()">توزيع تلقائي</button>
-  <button class="btn" onclick="sendEmails()">إرسال للجميع</button>
-</section>
+    <!-- مكان لعرض التنبيهات القصيرة (Toast) -->
+    <div id="toast-container"></div>
 
-<section id="replacements">
-  <h2>التعويضات</h2>
-  <button class="btn" onclick="showFreeSlots()">عرض التعويضات</button>
-  <table><thead><tr><th>اليوم</th><th>فترة</th><th>طفل</th><th>إجراء</th></tr></thead><tbody id="tblFree"></tbody></table>
-</section>
+    <!-- ===== تبويبات التنقل الرئيسية ===== -->
+    <nav class="flex gap-6 border-b-2 border-clr-border">
+      <button id="tab-children-btn" class="btn-tab btn-tab-active">الأطفال</button>
+      <button id="tab-specialists-btn" class="btn-tab">الأخصائيون</button>
+      <button id="tab-appointments-btn" class="btn-tab">المواعيد</button>
+      <button id="tab-reports-btn" class="btn-tab">التقارير</button>
+      <button id="tab-send-btn" class="btn-tab">إرسال جدول</button>
+    </nav>
 
-<script>
-const days=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
-const depts=['تعديل سلوك','تخاطب','تنمية مهارات','جلسة نفسية','اختبار ذكاء'];
-const plans=['24 جلسة','36 جلسة','ساعة اختبار','ساعتين اختبار','48 جلسة'];
-const slots=['1:00 PM-1:40 PM','1:40 PM-2:20 PM','2:20 PM-3:00 PM','3:20 PM-4:00 PM','4:00 PM-4:40 PM','4:40 PM-5:20 PM','5:20 PM-6:00 PM','6:00 PM-6:40 PM','6:40 PM-7:20 PM','7:20 PM-8:00 PM','8:00 PM-8:40 PM','8:40 PM-9:20 PM'];
-let specs=[], childs=[], schedule=[];
+    <!-- ===== محتوى كل تبويب (يُعرض/يُخفى بحسب التبويب النشط) ===== -->
+    <div class="space-y-8">
 
-window.onload=()=>{
-  // Populate selects
-  depts.forEach(d=>document.getElementById('specDept').add(new Option(d,d)));
-  depts.forEach(d=>document.getElementById('childNeeds').add(new Option(d,d)));
-  plans.forEach(p=>document.getElementById('childPlan').add(new Option(p,p)));
-  slots.forEach(s=>document.getElementById('specSlots').add(new Option(s,s)));
-  slots.forEach(s=>document.getElementById('childSlots').add(new Option(s,s)));
-  // Main nav
-  document.querySelectorAll('nav.main button').forEach(b=>b.onclick=()=>showSection(b.dataset.target));
-  // Sub nav
-  document.querySelectorAll('nav.sub button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav.sub button').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderTable(b.dataset.sec);});
-  // Default
-  showSection('specialists');
-};
+      <!-- ===== TAB 1: CHILDREN MANAGEMENT (“الأطفال”) ===== -->
+      <section id="tab-children">
+        <h2 class="text-xl font-semibold mb-4">1. إدارة الأطفال والاشتراكات</h2>
+        <div class="flex justify-start mb-4">
+          <button id="btn-add-child" class="btn-primary">إضافة طفل جديد</button>
+        </div>
+        <div class="card overflow-x-auto">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th class="w-8">#</th>
+                <th class="w-40">اسم الطفل</th>
+                <th class="w-32">نوع الاشتراك</th>
+                <th class="w-28">تاريخ البدء</th>
+                <th class="w-32">عدد الجلسات الكلي</th>
+                <th class="w-32">عدد الجلسات المتبقية</th>
+                <th class="w-28">حالة التوقف</th>
+                <th class="w-32">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="table-children-body">
+              <!-- سيمتلئ تلقائيًا بواسطة app.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-function showSection(id){
-  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('nav.main button').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`nav.main button[data-target="${id}"]`).classList.add('active');
-  if(id==='schedule'){
-    const first=document.querySelector('nav.sub button');
-    first.click();
-  }
-}
+      <!-- ===== TAB 2: SPECIALISTS (“الأخصائيون”) ===== -->
+      <section id="tab-specialists" class="hidden">
+        <h2 class="text-xl font-semibold mb-4">2. إدارة الأخصائيين</h2>
+        <div class="flex justify-start mb-4">
+          <button id="btn-add-specialist" class="btn-primary">إضافة أخصائي</button>
+        </div>
+        <div class="card overflow-x-auto">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th class="w-8">#</th>
+                <th class="w-40">الاسم</th>
+                <th class="w-48">البريد الإلكتروني</th>
+                <th class="w-40">أيام العمل</th>
+                <th class="w-48">فترات العمل</th>
+                <th class="w-32">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="table-specialists-body">
+              <!-- سيمتلئ تلقائيًا بواسطة app.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-function addSpec(){
-  specs.push({name:document.getElementById('specName').value,dept:document.getElementById('specDept').value,email:document.getElementById('specEmail').value,days:Array.from(document.getElementById('specDays').selectedOptions).map(o=>o.value),slots:Array.from(document.getElementById('specSlots').selectedOptions).map(o=>o.value)});
-  renderSpecs();
-}
+      <!-- ===== TAB 3: APPOINTMENTS (“المواعيد”) ===== -->
+      <section id="tab-appointments" class="hidden">
+        <h2 class="text-xl font-semibold mb-4">3. حجز المواعيد</h2>
+        <div class="flex justify-start mb-4">
+          <button id="btn-add-appointment" class="btn-primary">إدخال موعد جديد</button>
+        </div>
+        <div class="card overflow-x-auto">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th class="w-8">#</th>
+                <th class="w-32">الطفل</th>
+                <th class="w-24">اليوم</th>
+                <th class="w-24">الوقت</th>
+                <th class="w-32">القسم</th>
+                <th class="w-32">نوع الحزمة</th>
+                <th class="w-32">الأخصائي</th>
+                <th class="w-24">الحالة</th>
+                <th class="w-40">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="table-appointments-body">
+              <!-- سيمتلئ تلقائيًا بواسطة app.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-function renderSpecs(){
-  document.getElementById('tblSpecs').innerHTML=specs.map((s,i)=>`<tr><td>${s.name}</td><td>${s.dept}</td><td>${s.email}</td><td>${s.days.join(',')}</td><td>${s.slots.join(',')}</td><td><button class='btn delete-btn' onclick="deleteSpec(${i})">حذف</button></td></tr>`).join('');
-}
+      <!-- ===== TAB 4: REPORTS (“التقارير”) ===== -->
+      <section id="tab-reports" class="hidden">
+        <h2 class="text-xl font-semibold mb-4">4. التقارير الأسبوعية</h2>
+        <div class="card space-y-6">
+          <!-- تقرير: الأطفال القريبون من الانتهاء -->
+          <div>
+            <h3 class="font-semibold mb-2">أطفال على وشك انتهاء الاشتراك (جلستين أو أقل متبقيتان)</h3>
+            <ul id="report-expiring-children" class="list-disc list-inside text-sm text-gray-700">
+              <!-- سيمتلئ بواسطة app.js -->
+            </ul>
+          </div>
+          <!-- تقرير: الأطفال المتوقفون مؤقتًا -->
+          <div>
+            <h3 class="font-semibold mb-2">أطفال في حالة توقف مؤقت</h3>
+            <ul id="report-paused-children" class="list-disc list-inside text-sm text-gray-700">
+              <!-- سيمتلئ بواسطة app.js -->
+            </ul>
+          </div>
+        </div>
+      </section>
 
-function deleteSpec(i){ specs.splice(i,1); renderSpecs(); }
+      <!-- ===== TAB 5: SEND SCHEDULE (“إرسال جدول”) ===== -->
+      <section id="tab-send" class="hidden">
+        <h2 class="text-xl font-semibold mb-4">5. إرسال جدول أخصائي</h2>
+        <div class="card max-w-md">
+          <div class="space-y-4">
+            <div>
+              <label for="send-filter-spec" class="block text-sm font-medium">اسم الأخصائي:</label>
+              <input type="text" id="send-filter-spec" placeholder="أدخل اسم الأخصائي" />
+            </div>
+            <div>
+              <label for="email-spec" class="block text-sm font-medium">البريد الإلكتروني:</label>
+              <input type="email" id="email-spec" placeholder="example@gmail.com" />
+            </div>
+            <div>
+              <button id="btn-send-email" class="btn-primary">إرسال الجدول</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-function addChild(){
-  childs.push({name:document.getElementById('childName').value,spec:document.getElementById('childSpec').value,needs:Array.from(document.getElementById('childNeeds').selectedOptions).map(o=>o.value),plan:document.getElementById('childPlan').value,days:Array.from(document.getElementById('childDays').selectedOptions).map(o=>o.value),slots:Array.from(document.getElementById('childSlots').selectedOptions).map(o=>o.value)});
-  renderChilds();
-}
+    </div>
+  </main>
 
-function renderChilds(){
-  document.getElementById('tblChildren').innerHTML=childs.map((c,i)=>`<tr><td>${c.name}</td><td>${c.spec}</td><td>${c.needs.join(',')}</td><td>${c.plan}</td><td>${c.days.join(',')}</td><td>${c.slots.join(',')}</td><td><button class='btn delete-btn' onclick="deleteChild(${i})">حذف</button></td></tr>`).join('');
-}
 
-function deleteChild(i){ childs.splice(i,1); renderChilds(); }
+  <!-- ===== MODAL: إضافة / تعديل طفل ===== -->
+  <div id="modal-child" class="modal-bg hidden">
+    <div class="modal-card">
+      <h2 class="text-lg font-semibold mb-4">إضافة / تعديل طفل</h2>
+      <form id="form-modal-child" class="space-y-4">
+        <div>
+          <label for="modal-child-name" class="block text-sm font-medium">اسم الطفل:</label>
+          <input type="text" id="modal-child-name" placeholder="مثال: عمر" required />
+        </div>
+        <div>
+          <label for="modal-child-subtype" class="block text-sm font-medium">نوع الاشتراك:</label>
+          <select id="modal-child-subtype">
+            <option value="24">24 جلسة (8 زيارات)</option>
+            <option value="36">36 جلسة (12 زيارة)</option>
+            <option value="48">48 جلسة (16 زيارة)</option>
+            <option value="psych">جلسة نفسية (ساعة واحدة)</option>
+            <option value="iq-test">اختبار ذكاء (ساعتان)</option>
+            <option value="speech">تخاطب منفردة (ساعة واحدة)</option>
+          </select>
+        </div>
+        <div>
+          <label for="modal-child-start" class="block text-sm font-medium">تاريخ بدء الاشتراك:</label>
+          <input type="date" id="modal-child-start" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium">حالة التوقف المؤقت:</label>
+          <select id="modal-child-paused">
+            <option value="false">غير متوقف</option>
+            <option value="true">متوقف مؤقتًا</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-4 pt-4">
+          <button type="button" id="modal-child-cancel" class="px-4 py-2 bg-gray-300 text-gray-700 rounded">إلغاء</button>
+          <button type="submit" class="btn-primary">حفظ الطفل</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-function autoAssign(){
-  schedule=[];
-  childs.forEach(c=>{let max=parseInt(c.plan)||1,count=0;days.forEach(day=>{if(count<max&&c.days.includes(day)){c.slots.forEach(sl=>{if(count<max){schedule.push({day,slot:sl,dept:c.needs[count% c.needs.length],spec:c.spec,child:c.name});count++;}});}});});
-  const sec=document.querySelector('nav.sub button.active').dataset.sec;
-  renderTable(sec);
-}
+  <!-- ===== MODAL: إضافة / تعديل أخصائي ===== -->
+  <div id="modal-specialist" class="modal-bg hidden">
+    <div class="modal-card">
+      <h2 class="text-lg font-semibold mb-4">إضافة / تعديل أخصائي</h2>
+      <form id="form-modal-specialist" class="space-y-4">
+        <div>
+          <label for="modal-spec-name" class="block text-sm font-medium">الاسم:</label>
+          <input type="text" id="modal-spec-name" placeholder="مثال: د. أحمد" required />
+        </div>
+        <div>
+          <label for="modal-spec-email" class="block text-sm font-medium">البريد الإلكتروني:</label>
+          <input type="email" id="modal-spec-email" placeholder="example@gmail.com" required />
+        </div>
+        <div>
+          <label for="modal-spec-days" class="block text-sm font-medium">أيام العمل (مفصولة بفواصل):</label>
+          <input type="text" id="modal-spec-days" placeholder="السبت، الأحد، ..." required />
+        </div>
+        <div>
+          <label for="modal-spec-times" class="block text-sm font-medium">فترات العمل (مفصولة بفواصل):</label>
+          <input type="text" id="modal-spec-times" placeholder="1:00-1:40،1:40-2:20، ..." required />
+        </div>
+        <div class="flex justify-end gap-4 pt-4">
+          <button type="button" id="modal-spec-cancel" class="px-4 py-2 bg-gray-300 text-gray-700 rounded">إلغاء</button>
+          <button type="submit" class="btn-primary">حفظ الأخصائي</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-function renderTable(sec){
-  const header=`<tr><th>الوقت/اليوم</th>${days.map(d=>`<th>${d}</th>`).join('')}</tr>`;
-  const rows=slots.map(sl=>{let row=`<td>${sl}</td>`;days.forEach(day=>{const r=schedule.find(x=>x.day===day&&x.slot===sl&&x.dept===sec);row+=`<td class="dept-${sec.replace(/ /g,'\\ ')} state-${r?'محجوز':'متاح'}">${r?`${r.child} (${r.spec})`:''}<br>${r?`<button class='btn delete-btn' onclick="deleteSchedule('${day}','${sl}','${sec}')">حذف</button>`:''}</td>`;});return`<tr>${row}</tr>`;}).join('');
-  document.getElementById('scheduleContainer').innerHTML=`<table><thead>${header}</thead><tbody>${rows}</tbody></table>`;
-}
+  <!-- ===== MODAL: إضافة / تعديل موعد ===== -->
+  <div id="modal-appointment" class="modal-bg hidden">
+    <div class="modal-card">
+      <h2 class="text-lg font-semibold mb-4">إضافة / تعديل موعد</h2>
+      <form id="form-modal-appointment" class="space-y-4">
+        <div>
+          <label for="modal-appt-child" class="block text-sm font-medium">اختر الطفل:</label>
+          <select id="modal-appt-child">
+            <!-- سيتم ملئه بالقائمة الديناميكية للأطفال -->
+          </select>
+        </div>
+        <div>
+          <label for="modal-appt-day" class="block text-sm font-medium">اليوم:</label>
+          <select id="modal-appt-day">
+            <option>السبت</option>
+            <option>الأحد</option>
+            <option>الاثنين</option>
+            <option>الثلاثاء</option>
+            <option>الأربعاء</option>
+            <option>الخميس</option>
+          </select>
+        </div>
+        <div>
+          <label for="modal-appt-time" class="block text-sm font-medium">الوقت:</label>
+          <select id="modal-appt-time">
+            <option>1:00 - 1:40</option>
+            <option>1:40 - 2:20</option>
+            <option>2:20 - 3:00</option>
+            <option>3:20 - 4:00</option>
+            <option>4:00 - 4:40</option>
+            <option>4:40 - 5:20</option>
+            <option>5:20 - 6:00</option>
+            <option>6:00 - 6:40</option>
+            <option>6:40 - 7:20</option>
+            <option>7:20 - 8:00</option>
+            <option>8:00 - 8:40</option>
+            <option>8:40 - 9:20</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">القسم:</label>
+          <div class="mt-1 p-3 border border-clr-border rounded grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2">
+              <input type="radio" name="modal-appt-dept" value="تعديل سلوك" /> تعديل سلوك
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="modal-appt-dept" value="تخاطب" /> تخاطب
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="modal-appt-dept" value="تنمية مهارات" /> تنمية مهارات
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="modal-appt-dept" value="جلسة نفسية" /> جلسة نفسية
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="modal-appt-dept" value="اختبار ذكاء" /> اختبار ذكاء
+            </label>
+          </div>
+        </div>
+        <div>
+          <label for="modal-appt-type" class="block text-sm font-medium">نوع الموعد:</label>
+          <select id="modal-appt-type">
+            <option value="regular">عادي</option>
+            <option value="makeup">تعويض</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-4 pt-4">
+          <button type="button" id="modal-appt-cancel" class="px-4 py-2 bg-gray-300 text-gray-700 rounded">إلغاء</button>
+          <button type="submit" class="btn-primary">حفظ الموعد</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-function deleteSchedule(day,sl,sec){ const idx=schedule.findIndex(x=>x.day===day&&x.slot===sl&&x.dept===sec); if(idx>-1) schedule.splice(idx,1); renderTable(sec); }
-
-function sendEmails(){
-  specs.forEach(s=>{const rows=schedule.filter(x=>x.spec===s.name).map(x=>`<tr><td>${x.day}</td><td>${x.slot}</td><td>${x.child}</td><td>${x.dept}</td></tr>`).join('');
-    const html=`<div style="font-family:Arial;"><h2 style="color:var(--primary);">جدول المواعيد الأسبوعي</h2><p>عزيزي ${s.name}, يرجى الاطلاع على جدولك:</p><table border=1 cellpadding=8 cellspacing=0 style="width:100%;border-collapse:collapse;"><tr style="background:var(--secondary);"><th>يوم</th><th>فترة</th><th>طفل</th><th>قسم</th></tr>${rows}</table><p>تحيات إدارة مركز ينمو</p></div>`;
-    window.open(`mailto:${s.email}?subject=${encodeURIComponent(`جدولك الأسبوعي - ${s.name}`)}&body=${encodeURIComponent(html)}`);
-  });
-}
-
-function showFreeSlots(){
-  const occ=schedule.map(x=>x.day+x.slot);
-  const rows=days.map(day=>slots.filter(sl=>!occ.includes(day+sl)).map(sl=>`<tr><td>${day}</td><td>${sl}</td><td><input id='inp${day}${sl}' placeholder='اسم الطفل'></td><td><button class='btn' onclick="addRep('${day}','${sl}')">إضافة</button></td></tr>`).join('')).join('');
-  document.getElementById('tblFree').innerHTML=rows;
-}
-
-function addRep(day,sl){const n=document.getElementById(`inp${day}${sl}`).value;if(!n)return;schedule.push({day,slot:sl,dept:'تعويض',spec:'',child:n});const sec=document.querySelector('nav.sub button.active').dataset.sec;renderTable(sec);showFreeSlots();}
-</script>
+  <!-- ===== ربط ملف الجافاسكربت المنطقي ===== -->
+  <script type="module" src="./app.js"></script>
 </body>
 </html>

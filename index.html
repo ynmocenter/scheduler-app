@@ -5,24 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام مواعيد المركز</title>
 
-  <!-- ===== 1) Tailwind CSS (CDN) ===== -->
+  <!-- ===== Tailwind CSS ===== -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- ===== 2) الخطّ العربي Tajawal ===== -->
+  <!-- ===== خطّ عربي Tajawal ===== -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 
-  <!-- ===== 3) EmailJS SDK ===== -->
+  <!-- ===== EmailJS SDK ===== -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-
-  <!-- ===== 4) تهيئة Firebase (نستدعي ملفنا لاحقًا) ===== -->
+  <!-- ===== تهيئة Firebase ===== -->
   <script type="module" src="./firebase-config.js"></script>
 
-  <!-- ===== 5) CSS مخصّص إضافي ===== -->
+  <!-- ===== CSS إضافي ===== -->
   <style>
     html, body {
-      margin: 0; 
-      padding: 0; 
-      height: 100%;
+      margin: 0; padding: 0; height: 100%;
       font-family: 'Tajawal', sans-serif;
       background-color: #F7F9FA;
       color: #1F2937;
@@ -30,42 +26,39 @@
     :root {
       --clr-primary:   #0B2545;  /* أزرق داكن */
       --clr-accent:    #64C8B0;  /* مينت */
-      --clr-card-bg:   #FFFFFF;  /* أبيض للبطاقات */
-      --clr-border:    #E5E7EB;  /* رمادي فاتح للحدود */
-      --clr-header-bg: #0B2545;  /* خلفية الشريط العلوي */
-      --clr-toast-ok:  #34D399;  /* أخضر للتنبيه الناجح */
-      --clr-toast-err: #F87171;  /* أحمر للتنبيه بالخطأ */
-      --clr-toast-info:#FBBF24;  /* أصفر للتنبيه المعلوماتي */
+      --clr-card-bg:   #FFFFFF;
+      --clr-border:    #E5E7EB;
+      --clr-header-bg: #0B2545;
+      --clr-toast-ok:  #34D399;
+      --clr-toast-err: #F87171;
+      --clr-toast-info:#FBBF24;
     }
-
-    /* === الشريط العلوي (Header) === */
+    /* Header */
     header {
       background-color: var(--clr-header-bg);
-      height: 56px;             /* ارتفاع ثابت للشريط */
+      height: 56px;
       display: flex;
       align-items: center;
-      justify-content: center;  /* عنوان الوسط */
+      justify-content: center;
       position: relative;
       padding: 0 1rem;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    /* الشعار في اليسار */
     .logo-img {
       position: absolute;
       left: 1rem;
-      height: 40px;    /* الشعار بارتفاع 40px */
+      height: 40px;
       width: auto;
       object-contain;
     }
-    /* عنوان النظام في المنتصف */
     header h1 {
-      font-size: 1.375rem; /* تقريبًا 22px */
+      font-size: 1.375rem; /* 22px */
       font-weight: 700;
       color: white;
       margin: 0;
     }
 
-    /* === أزرار ونصوص عامة === */
+    /* أزرار ونصوص عامة */
     .btn-primary {
       @apply bg-accent text-white font-medium py-2 px-4 rounded shadow hover:bg-opacity-90 transition;
     }
@@ -84,12 +77,12 @@
     .toast-error   { background-color: var(--clr-toast-err); }
     .toast-info    { background-color: var(--clr-toast-info); }
 
-    /* بطاقات (Cards) */
+    /* بطاقات */
     .card {
       @apply bg-card-bg p-6 rounded-lg shadow-md;
     }
 
-    /* === تنسيق الجداول الاحترافي (Styled Tables) === */
+    /* جداول منسقة */
     .styled-table {
       @apply table-auto w-full border-collapse mt-4;
     }
@@ -106,7 +99,7 @@
       @apply bg-gray-100;
     }
 
-    /* النماذج (Forms) */
+    /* Forms */
     input, select {
       @apply w-full mt-1 p-2 border border-clr-border rounded focus:ring-2 focus:ring-accent focus:outline-none text-sm;
     }
@@ -114,11 +107,10 @@
       @apply flex items-center gap-2 text-sm;
     }
 
-    /* خلفية المودال (Dark overlay) */
+    /* المودالات */
     .modal-bg {
       @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
     }
-    /* صندوق المودال */
     .modal-card {
       @apply bg-white p-6 rounded-lg shadow-lg w-full max-w-md;
     }
@@ -126,7 +118,7 @@
 </head>
 <body>
 
-  <!-- ===== HEADER (الشعار + عنوان النظام) ===== -->
+  <!-- ===== HEADER ===== -->
   <header>
     <img src="assets/logo.png" alt="شعار المركز" class="logo-img" />
     <h1>نظام مواعيد المركز</h1>
@@ -134,11 +126,10 @@
 
   <!-- ===== المحتوى الرئيسي ===== -->
   <main class="container mx-auto px-4 py-6 space-y-8">
-
-    <!-- مكان لعرض التنبيهات القصيرة (Toast) -->
+    <!-- Toast Container -->
     <div id="toast-container"></div>
 
-    <!-- ===== تبويبات التنقل الرئيسية ===== -->
+    <!-- ===== تبويبات التنقل ===== -->
     <nav class="flex gap-6 border-b-2 border-clr-border">
       <button id="tab-children-btn" class="btn-tab btn-tab-active">الأطفال</button>
       <button id="tab-specialists-btn" class="btn-tab">الأخصائيون</button>
@@ -147,10 +138,10 @@
       <button id="tab-send-btn" class="btn-tab">إرسال جدول</button>
     </nav>
 
-    <!-- ===== محتوى كل تبويب (يُعرض/يُخفى بحسب التبويب النشط) ===== -->
+    <!-- ===== محتوى التبويبات ===== -->
     <div class="space-y-8">
 
-      <!-- ===== TAB 1: CHILDREN MANAGEMENT (“الأطفال”) ===== -->
+      <!-- TAB 1: إدارة الأطفال -->
       <section id="tab-children">
         <h2 class="text-xl font-semibold mb-4">1. إدارة الأطفال والاشتراكات</h2>
         <div class="flex justify-start mb-4">
@@ -171,13 +162,13 @@
               </tr>
             </thead>
             <tbody id="table-children-body">
-              <!-- سيمتلئ تلقائيًا بواسطة app.js -->
+              <!-- سيمتلئ عبر app.js -->
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- ===== TAB 2: SPECIALISTS (“الأخصائيون”) ===== -->
+      <!-- TAB 2: إدارة الأخصائيين -->
       <section id="tab-specialists" class="hidden">
         <h2 class="text-xl font-semibold mb-4">2. إدارة الأخصائيين</h2>
         <div class="flex justify-start mb-4">
@@ -188,21 +179,22 @@
             <thead>
               <tr>
                 <th class="w-8">#</th>
-                <th class="w-40">الاسم</th>
+                <th class="w-32">الاسم</th>
                 <th class="w-48">البريد الإلكتروني</th>
-                <th class="w-40">أيام العمل</th>
+                <th class="w-32">القسم</th>
+                <th class="w-32">أيام العمل</th>
                 <th class="w-48">فترات العمل</th>
                 <th class="w-32">إجراءات</th>
               </tr>
             </thead>
             <tbody id="table-specialists-body">
-              <!-- سيمتلئ تلقائيًا بواسطة app.js -->
+              <!-- سيمتلئ عبر app.js -->
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- ===== TAB 3: APPOINTMENTS (“المواعيد”) ===== -->
+      <!-- TAB 3: حجز المواعيد -->
       <section id="tab-appointments" class="hidden">
         <h2 class="text-xl font-semibold mb-4">3. حجز المواعيد</h2>
         <div class="flex justify-start mb-4">
@@ -217,48 +209,46 @@
                 <th class="w-24">اليوم</th>
                 <th class="w-24">الوقت</th>
                 <th class="w-32">القسم</th>
-                <th class="w-32">نوع الحزمة</th>
                 <th class="w-32">الأخصائي</th>
+                <th class="w-32">نوع الحزمة</th>
                 <th class="w-24">الحالة</th>
                 <th class="w-40">إجراءات</th>
               </tr>
             </thead>
             <tbody id="table-appointments-body">
-              <!-- سيمتلئ تلقائيًا بواسطة app.js -->
+              <!-- سيمتلئ عبر app.js -->
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- ===== TAB 4: REPORTS (“التقارير”) ===== -->
+      <!-- TAB 4: التقارير -->
       <section id="tab-reports" class="hidden">
         <h2 class="text-xl font-semibold mb-4">4. التقارير الأسبوعية</h2>
         <div class="card space-y-6">
-          <!-- تقرير: الأطفال القريبون من الانتهاء -->
           <div>
             <h3 class="font-semibold mb-2">أطفال على وشك انتهاء الاشتراك (جلستين أو أقل متبقيتان)</h3>
             <ul id="report-expiring-children" class="list-disc list-inside text-sm text-gray-700">
-              <!-- سيمتلئ بواسطة app.js -->
+              <!-- سيمتلئ عبر app.js -->
             </ul>
           </div>
-          <!-- تقرير: الأطفال المتوقفون مؤقتًا -->
           <div>
             <h3 class="font-semibold mb-2">أطفال في حالة توقف مؤقت</h3>
             <ul id="report-paused-children" class="list-disc list-inside text-sm text-gray-700">
-              <!-- سيمتلئ بواسطة app.js -->
+              <!-- سيمتلئ عبر app.js -->
             </ul>
           </div>
         </div>
       </section>
 
-      <!-- ===== TAB 5: SEND SCHEDULE (“إرسال جدول”) ===== -->
+      <!-- TAB 5: إرسال جدول الأخصائي -->
       <section id="tab-send" class="hidden">
         <h2 class="text-xl font-semibold mb-4">5. إرسال جدول أخصائي</h2>
         <div class="card max-w-md">
           <div class="space-y-4">
             <div>
               <label for="send-filter-spec" class="block text-sm font-medium">اسم الأخصائي:</label>
-              <input type="text" id="send-filter-spec" placeholder="أدخل اسم الأخصائي" />
+              <input type="text" id="send-filter-spec" placeholder="مثال: د. أحمد" />
             </div>
             <div>
               <label for="email-spec" class="block text-sm font-medium">البريد الإلكتروني:</label>
@@ -274,8 +264,7 @@
     </div>
   </main>
 
-
-  <!-- ===== MODAL: إضافة / تعديل طفل ===== -->
+  <!-- ===== مودال إضافة / تعديل طفل ===== -->
   <div id="modal-child" class="modal-bg hidden">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل طفل</h2>
@@ -314,7 +303,7 @@
     </div>
   </div>
 
-  <!-- ===== MODAL: إضافة / تعديل أخصائي ===== -->
+  <!-- ===== مودال إضافة / تعديل أخصائي ===== -->
   <div id="modal-specialist" class="modal-bg hidden">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل أخصائي</h2>
@@ -326,6 +315,16 @@
         <div>
           <label for="modal-spec-email" class="block text-sm font-medium">البريد الإلكتروني:</label>
           <input type="email" id="modal-spec-email" placeholder="example@gmail.com" required />
+        </div>
+        <div>
+          <label for="modal-spec-dept" class="block text-sm font-medium">القسم:</label>
+          <select id="modal-spec-dept" required>
+            <option value="تعديل سلوك">تعديل سلوك</option>
+            <option value="تخاطب">تخاطب</option>
+            <option value="تنمية مهارات">تنمية مهارات</option>
+            <option value="جلسة نفسية">جلسة نفسية</option>
+            <option value="اختبار ذكاء">اختبار ذكاء</option>
+          </select>
         </div>
         <div>
           <label for="modal-spec-days" class="block text-sm font-medium">أيام العمل (مفصولة بفواصل):</label>
@@ -343,20 +342,20 @@
     </div>
   </div>
 
-  <!-- ===== MODAL: إضافة / تعديل موعد ===== -->
+  <!-- ===== مودال إضافة / تعديل موعد ===== -->
   <div id="modal-appointment" class="modal-bg hidden">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل موعد</h2>
       <form id="form-modal-appointment" class="space-y-4">
         <div>
           <label for="modal-appt-child" class="block text-sm font-medium">اختر الطفل:</label>
-          <select id="modal-appt-child">
-            <!-- سيتم ملئه بالقائمة الديناميكية للأطفال -->
+          <select id="modal-appt-child" required>
+            <!-- سيمتلئ عبر app.js -->
           </select>
         </div>
         <div>
           <label for="modal-appt-day" class="block text-sm font-medium">اليوم:</label>
-          <select id="modal-appt-day">
+          <select id="modal-appt-day" required>
             <option>السبت</option>
             <option>الأحد</option>
             <option>الاثنين</option>
@@ -367,7 +366,7 @@
         </div>
         <div>
           <label for="modal-appt-time" class="block text-sm font-medium">الوقت:</label>
-          <select id="modal-appt-time">
+          <select id="modal-appt-time" required>
             <option>1:00 - 1:40</option>
             <option>1:40 - 2:20</option>
             <option>2:20 - 3:00</option>
@@ -384,23 +383,20 @@
         </div>
         <div>
           <label class="block text-sm font-medium">القسم:</label>
-          <div class="mt-1 p-3 border border-clr-border rounded grid grid-cols-2 gap-2">
-            <label class="flex items-center gap-2">
-              <input type="radio" name="modal-appt-dept" value="تعديل سلوك" /> تعديل سلوك
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="modal-appt-dept" value="تخاطب" /> تخاطب
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="modal-appt-dept" value="تنمية مهارات" /> تنمية مهارات
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="modal-appt-dept" value="جلسة نفسية" /> جلسة نفسية
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="modal-appt-dept" value="اختبار ذكاء" /> اختبار ذكاء
-            </label>
-          </div>
+          <select id="modal-appt-dept" required>
+            <option value="">-- اختر القسم --</option>
+            <option value="تعديل سلوك">تعديل سلوك</option>
+            <option value="تخاطب">تخاطب</option>
+            <option value="تنمية مهارات">تنمية مهارات</option>
+            <option value="جلسة نفسية">جلسة نفسية</option>
+            <option value="اختبار ذكاء">اختبار ذكاء</option>
+          </select>
+        </div>
+        <div>
+          <label for="modal-appt-spec" class="block text-sm font-medium">الأخصائي:</label>
+          <select id="modal-appt-spec" required>
+            <!-- سيمتلئ ديناميكيًا بناءً على القسم واليوم والوقت -->
+          </select>
         </div>
         <div>
           <label for="modal-appt-type" class="block text-sm font-medium">نوع الموعد:</label>
@@ -417,7 +413,7 @@
     </div>
   </div>
 
-  <!-- ===== ربط ملف الجافاسكربت المنطقي ===== -->
+  <!-- ===== ربط ملف الجافاسكربت ===== -->
   <script type="module" src="./app.js"></script>
 </body>
 </html>

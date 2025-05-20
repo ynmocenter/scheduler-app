@@ -1,6 +1,11 @@
 // app.js
 // ============================
-// كلّ منطق إدارة الأطفال، الأخصائيين، المواعيد، التقارير، وإرسال البريد الإلكتروني.
+// هنا كلّ المنطق لإدارة:
+// 1) الأطفال والاشتراكات
+// 2) الأخصائيون مع تحديد أقسامهم
+// 3) المواعيد: الاختيار اليدوي للأخصائي بناءً على القسم/اليوم/الوقت
+// 4) التقارير الأسبوعية
+// 5) إرسال جدول الأخصائي عبر EmailJS
 
 // 1) استدعاء Firebase (قاعدة البيانات) من ملف firebase-config.js
 import { db } from "./firebase-config.js";
@@ -14,20 +19,20 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 // 2) إعداد EmailJS
-const EMAILJS_USER_ID     = "Ol1_k8IqKWQbPcbNv";   // Public Key من EmailJS
-const EMAILJS_SERVICE_ID  = "service_cuzf74k";     // Service ID من EmailJS
-const EMAILJS_TEMPLATE_ID = "template_b04f8pi";    // Template ID من EmailJS
+const EMAILJS_USER_ID     = "Ol1_k8IqKWQbPcbNv";
+const EMAILJS_SERVICE_ID  = "service_cuzf74k";
+const EMAILJS_TEMPLATE_ID = "template_b04f8pi";
 emailjs.init(EMAILJS_USER_ID);
 
-// 3) متغيّرات عالميّة لحفظ البيانات مؤقتًا
+// 3) متغيّرات عالمية
 let children     = {}; // بيانات جميع الأطفال
-let specialists  = {}; // بيانات جميع الأخصائيين
+let specialists  = {}; // بيانات جميع الأخصائيين (مع dept)
 let appointments = {}; // بيانات جميع المواعيد
 
-// 4) عناصر DOM (عناصر HTML داخل index.html)
+// 4) عناصر DOM الأساسية
 const toastContainer = document.getElementById("toast-container");
 
-// أزرار التبويبات
+// تبويبات
 const tabChildrenBtn      = document.getElementById("tab-children-btn");
 const tabSpecialistsBtn   = document.getElementById("tab-specialists-btn");
 const tabAppointmentsBtn  = document.getElementById("tab-appointments-btn");
@@ -41,26 +46,26 @@ const tabAppointmentsSection  = document.getElementById("tab-appointments");
 const tabReportsSection       = document.getElementById("tab-reports");
 const tabSendSection          = document.getElementById("tab-send");
 
-// الجدوال داخل كل تبويب
+// جداول العرض
 const tableChildrenBody     = document.getElementById("table-children-body");
 const tableSpecialistsBody  = document.getElementById("table-specialists-body");
 const tableAppointmentsBody = document.getElementById("table-appointments-body");
 
-// عناصر التقارير
+// التقارير
 const reportExpiringChildren = document.getElementById("report-expiring-children");
 const reportPausedChildren   = document.getElementById("report-paused-children");
 
-// أزرار فتح النماذج (المودالات)
+// أزرار فتح المودالات
 const btnAddChild       = document.getElementById("btn-add-child");
 const btnAddSpecialist  = document.getElementById("btn-add-specialist");
 const btnAddAppointment = document.getElementById("btn-add-appointment");
 const btnSendEmail      = document.getElementById("btn-send-email");
 
-// حقول قسم إرسال جدول الأخصائي
+// إرسال جدول الأخصائي
 const sendFilterInput   = document.getElementById("send-filter-spec");
 const emailSpecInput    = document.getElementById("email-spec");
 
-// === مودال الطفل وعناصره ===
+// === مودال إضافة/تعديل طفل ===
 const modalChild         = document.getElementById("modal-child");
 const formModalChild     = document.getElementById("form-modal-child");
 const modalChildName     = document.getElementById("modal-child-name");
@@ -68,30 +73,33 @@ const modalChildSubtype  = document.getElementById("modal-child-subtype");
 const modalChildStart    = document.getElementById("modal-child-start");
 const modalChildPaused   = document.getElementById("modal-child-paused");
 const modalChildCancel   = document.getElementById("modal-child-cancel");
-let editingChildKey      = null; // المفتاح الحالي للأطفال عند التعديل
+let editingChildKey      = null;
 
-// === مودال الأخصائي وعناصره ===
+// === مودال إضافة/تعديل أخصائي ===
 const modalSpecialist      = document.getElementById("modal-specialist");
 const formModalSpecialist  = document.getElementById("form-modal-specialist");
 const modalSpecName        = document.getElementById("modal-spec-name");
 const modalSpecEmail       = document.getElementById("modal-spec-email");
+const modalSpecDept        = document.getElementById("modal-spec-dept");
 const modalSpecDays        = document.getElementById("modal-spec-days");
 const modalSpecTimes       = document.getElementById("modal-spec-times");
 const modalSpecCancel      = document.getElementById("modal-spec-cancel");
-let editingSpecialistKey   = null; // المفتاح الحالي للأخصائيين عند التعديل
+let editingSpecialistKey   = null;
 
-// === مودال الموعد وعناصره ===
+// === مودال إضافة/تعديل موعد ===
 const modalAppointment       = document.getElementById("modal-appointment");
 const formModalAppointment   = document.getElementById("form-modal-appointment");
 const modalApptChild         = document.getElementById("modal-appt-child");
 const modalApptDay           = document.getElementById("modal-appt-day");
 const modalApptTime          = document.getElementById("modal-appt-time");
+const modalApptDept          = document.getElementById("modal-appt-dept");
+const modalApptSpec          = document.getElementById("modal-appt-spec");
 const modalApptType          = document.getElementById("modal-appt-type");
 const modalApptCancel        = document.getElementById("modal-appt-cancel");
-let editingAppointmentKey    = null; // المفتاح الحالي للمواعيد عند التعديل
+let editingAppointmentKey    = null;
 
 // -------------------------------------------------
-// 5) دوال عرض الرسائل القصيرة (Toast Notifications)
+// 5) دوال Toast لإظهار التنبيهات
 // -------------------------------------------------
 function showToast(message, type = "success") {
   const div = document.createElement("div");
@@ -129,7 +137,7 @@ tabReportsBtn.addEventListener("click", () => {
   deactivateAllTabs();
   tabReportsSection.classList.remove("hidden");
   tabReportsBtn.classList.add("btn-tab-active");
-  renderReports(); // عند فتح التقارير، حدّثها
+  renderReports();
 });
 tabSendBtn.addEventListener("click", () => {
   deactivateAllTabs();
@@ -138,25 +146,24 @@ tabSendBtn.addEventListener("click", () => {
 });
 
 // -------------------------------------------------
-// 7) مراجع Firebase: children، specialists، appointments
+// 7) مراجع Firebase
 // -------------------------------------------------
 const childrenRef     = ref(db, "children");
 const specialistsRef  = ref(db, "specialists");
 const appointmentsRef = ref(db, "appointments");
 
-// الاستماع للتغييرات في بيانات الأطفال:
+// الاستماع للتغييرات في بيانات الأطفال
 onValue(childrenRef, snapshot => {
   children = snapshot.val() || {};
   renderChildren();
   populateChildDropdown();
 });
-// الاستماع للتغييرات في بيانات الأخصائيين:
+// الاستماع للتغييرات في بيانات الأخصائيين
 onValue(specialistsRef, snapshot => {
   specialists = snapshot.val() || {};
   renderSpecialists();
-  reassignAllAppointments(); // عند تغيير الأخصائيين، نعيد تعيين الأخصائيين للمواعيد
 });
-// الاستماع للتغييرات في بيانات المواعيد:
+// الاستماع للتغييرات في بيانات المواعيد
 onValue(appointmentsRef, snapshot => {
   appointments = snapshot.val() || {};
   renderAppointments();
@@ -170,7 +177,6 @@ function renderChildren() {
   const keys = Object.keys(children);
   keys.forEach((key, idx) => {
     const ch = children[key];
-    // حساب عدد الجلسات الكلي:
     let totalSessions = 0;
     if (ch.subtype === "24")      totalSessions = 24;
     else if (ch.subtype === "36") totalSessions = 36;
@@ -186,7 +192,7 @@ function renderChildren() {
     tr.innerHTML = `
       <td class="py-2">${idx + 1}</td>
       <td class="py-2">${ch.name}</td>
-      <td class="py-2"> 
+      <td class="py-2">
         ${
           ch.subtype === "24"    ? "24 جلسة" :
           ch.subtype === "36"    ? "36 جلسة" :
@@ -209,7 +215,7 @@ function renderChildren() {
 }
 
 // -------------------------------------------------
-// 9) إضافة / تعديل / حذف طفل
+// 9) فتح المودال لإضافة طفل
 // -------------------------------------------------
 function openAddChild() {
   editingChildKey = null;
@@ -219,6 +225,7 @@ function openAddChild() {
   modalChildPaused.value  = "false";
   modalChild.classList.remove("hidden");
 }
+// تحرير طفل موجود
 window.openEditChild = function(key) {
   editingChildKey = key;
   const ch = children[key];
@@ -228,11 +235,13 @@ window.openEditChild = function(key) {
   modalChildPaused.value   = ch.paused;
   modalChild.classList.remove("hidden");
 };
+// حذف طفل
 window.deleteChild = function(key) {
   if (!confirm("هل تريد حذف هذا الطفل؟")) return;
   remove(ref(db, "children/" + key));
   showToast("تم حذف بيانات الطفل", "info");
 };
+// حفظ بيانات الطفل (إضافة/تعديل)
 formModalChild.addEventListener("submit", (e) => {
   e.preventDefault();
   const name    = modalChildName.value.trim();
@@ -313,6 +322,7 @@ function renderSpecialists() {
       <td class="py-2">${idx + 1}</td>
       <td class="py-2">${sp.name}</td>
       <td class="py-2">${sp.email}</td>
+      <td class="py-2">${sp.dept}</td>
       <td class="py-2">${sp.days.join("، ")}</td>
       <td class="py-2">${sp.times.join("، ")}</td>
       <td class="py-2 space-x-3">
@@ -324,49 +334,53 @@ function renderSpecialists() {
 }
 
 // -------------------------------------------------
-// 11) إضافة / تعديل / حذف أخصائي
+// 11) فتح المودال لإضافة أخصائي
 // -------------------------------------------------
 function openAddSpecialist() {
   editingSpecialistKey = null;
   formModalSpecialist.reset();
+  modalSpecDept.value   = "تعديل سلوك";
   modalSpecialist.classList.remove("hidden");
 }
+// تحرير أخصائي موجود
 window.openEditSpecialist = function(key) {
   editingSpecialistKey = key;
   const sp = specialists[key];
   modalSpecName.value  = sp.name;
   modalSpecEmail.value = sp.email;
+  modalSpecDept.value  = sp.dept;
   modalSpecDays.value  = sp.days.join(",");
   modalSpecTimes.value = sp.times.join(",");
   modalSpecialist.classList.remove("hidden");
 };
+// حذف أخصائي
 window.deleteSpecialist = function(key) {
   if (!confirm("هل تريد حذف هذا الأخصائي؟")) return;
   remove(ref(db, "specialists/" + key));
-  reassignAllAppointments();
   showToast("تم حذف الأخصائي", "info");
 };
 formModalSpecialist.addEventListener("submit", (e) => {
   e.preventDefault();
   const name  = modalSpecName.value.trim();
   const email = modalSpecEmail.value.trim();
+  const dept  = modalSpecDept.value;
   const days  = modalSpecDays.value.split(",").map(d => d.trim()).filter(d => d);
   const times = modalSpecTimes.value.split(",").map(t => t.trim()).filter(t => t);
-  if (!name || !email || days.length === 0 || times.length === 0) {
+
+  if (!name || !email || !dept || days.length === 0 || times.length === 0) {
     showToast("يرجى تعبئة جميع الحقول بشكل صحيح", "error");
     return;
   }
 
   if (editingSpecialistKey === null) {
     const newRef = push(specialistsRef);
-    set(newRef, { name, email, days, times });
+    set(newRef, { name, email, dept, days, times });
     showToast("تمت إضافة الأخصائي بنجاح", "success");
   } else {
-    update(ref(db, "specialists/" + editingSpecialistKey), { name, email, days, times });
+    update(ref(db, "specialists/" + editingSpecialistKey), { name, email, dept, days, times });
     showToast("تم تعديل بيانات الأخصائي", "success");
   }
   modalSpecialist.classList.add("hidden");
-  reassignAllAppointments();
 });
 modalSpecCancel.addEventListener("click", () => {
   modalSpecialist.classList.add("hidden");
@@ -374,20 +388,52 @@ modalSpecCancel.addEventListener("click", () => {
 btnAddSpecialist.addEventListener("click", openAddSpecialist);
 
 // -------------------------------------------------
-// 12) عرض جدول المواعيد (renderAppointments)
+// 12) ملء قائمة الأطفال في مودال الموعد
+// -------------------------------------------------
+function populateChildDropdown() {
+  modalApptChild.innerHTML = `<option value="">-- اختر الطفل --</option>`;
+  Object.keys(children).forEach(key => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = children[key].name;
+    modalApptChild.appendChild(opt);
+  });
+}
+
+// -------------------------------------------------
+// 13) ملء قائمة الأخصائيين في مودال الموعد بناءً على القسم/اليوم/الوقت
+// -------------------------------------------------
+function populateSpecialistDropdown() {
+  const selectedDept = modalApptDept.value;
+  const selectedDay  = modalApptDay.value;
+  const selectedTime = modalApptTime.value;
+  modalApptSpec.innerHTML = `<option value="">-- اختر الأخصائي --</option>`;
+  Object.keys(specialists).forEach(key => {
+    const sp = specialists[key];
+    // نختار الأخصائي إذا كان قسمه يساوي القسم المحدد، ويوجد في اليوم المحدد، ويعمل في الوقت المحدد
+    if (sp.dept === selectedDept && sp.days.includes(selectedDay) && sp.times.includes(selectedTime)) {
+      const opt = document.createElement("option");
+      opt.value = sp.name;
+      opt.textContent = sp.name;
+      modalApptSpec.appendChild(opt);
+    }
+  });
+}
+
+// -------------------------------------------------
+// 14) عرض جدول المواعيد (renderAppointments)
 // -------------------------------------------------
 function renderAppointments() {
   tableAppointmentsBody.innerHTML = "";
   const keys = Object.keys(appointments);
   keys.forEach((key, idx) => {
     const ap = appointments[key];
-    const chName = children[ap.childId]?.name || "(غير متوفر)";
+    const chName   = children[ap.childId]?.name || "(غير متوفر)";
     const specName = ap.spec || "-";
-    const statusText = ap.status === "regular"   ? "جاري"
-                     : ap.status === "makeup"    ? "تعويض"
-                     : ap.status === "missed"    ? "غاب"
-                     : ap.status === "pending"   ? "معلق"
-                     : "";
+    const statusText = ap.status === "regular" ? "جاري"
+                     : ap.status === "makeup"  ? "تعويض"
+                     : ap.status === "missed"  ? "غاب"   : "";
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="py-2">${idx + 1}</td>
@@ -395,6 +441,7 @@ function renderAppointments() {
       <td class="py-2">${ap.day}</td>
       <td class="py-2">${ap.time}</td>
       <td class="py-2">${ap.dept}</td>
+      <td class="py-2">${specName}</td>
       <td class="py-2">${
         children[ap.childId]?.subtype === "24"    ? "24 جلسة" :
         children[ap.childId]?.subtype === "36"    ? "36 جلسة" :
@@ -403,7 +450,6 @@ function renderAppointments() {
         children[ap.childId]?.subtype === "iq-test"? "اختبار ذكاء" :
         children[ap.childId]?.subtype === "speech" ? "تخاطب منفردة" : ""
       }</td>
-      <td class="py-2">${specName}</td>
       <td class="py-2">${statusText}</td>
       <td class="py-2 space-x-1">
         <button onclick="openEditAppointment('${key}')" class="text-blue-500 hover:text-blue-700 text-sm">تعديل</button>
@@ -424,26 +470,17 @@ function renderAppointments() {
 }
 
 // -------------------------------------------------
-// 13) إضافة / تعديل / حذف موعد
+// 15) فتح مودال إضافة/تعديل موعد
 // -------------------------------------------------
-function populateChildDropdown() {
-  modalApptChild.innerHTML = "";
-  const keys = Object.keys(children);
-  keys.forEach(key => {
-    const opt = document.createElement("option");
-    opt.value = key;
-    opt.textContent = children[key].name;
-    modalApptChild.appendChild(opt);
-  });
-}
-
 function openAddAppointment() {
   editingAppointmentKey = null;
   formModalAppointment.reset();
+  modalApptDept.value  = "";
+  modalApptSpec.innerHTML = `<option value="">-- اختر الأخصائي --</option>`;
   modalApptChild.value = "";
-  modalApptDay.value = "السبت";
-  modalApptTime.value = "1:00 - 1:40";
-  modalApptType.value = "regular";
+  modalApptDay.value   = "السبت";
+  modalApptTime.value  = "1:00 - 1:40";
+  modalApptType.value  = "regular";
   modalAppointment.classList.remove("hidden");
 }
 window.openEditAppointment = function(key) {
@@ -452,10 +489,11 @@ window.openEditAppointment = function(key) {
   modalApptChild.value = ap.childId;
   modalApptDay.value   = ap.day;
   modalApptTime.value  = ap.time;
+  modalApptDept.value  = ap.dept;
   modalApptType.value  = ap.status === "makeup" ? "makeup" : "regular";
-  document.querySelectorAll('input[name="modal-appt-dept"]').forEach(rb => {
-    rb.checked = (rb.value === ap.dept);
-  });
+  // املأ قائمة الأخصائيين بناءً على القسم/اليوم/الوقت
+  populateSpecialistDropdown();
+  modalApptSpec.value  = ap.spec || "";
   modalAppointment.classList.remove("hidden");
 };
 window.deleteAppointment = function(key) {
@@ -470,36 +508,38 @@ window.deleteAppointment = function(key) {
   showToast("تم حذف الموعد", "info");
 };
 
+// عند تغيير القسم أو اليوم أو الوقت، أعد ملء قائمة الأخصائيين تلقائيًا
+modalApptDept.addEventListener("change", populateSpecialistDropdown);
+modalApptDay.addEventListener("change", populateSpecialistDropdown);
+modalApptTime.addEventListener("change", populateSpecialistDropdown);
+
 formModalAppointment.addEventListener("submit", (e) => {
   e.preventDefault();
   const childId = modalApptChild.value;
   const day     = modalApptDay.value;
   const time    = modalApptTime.value;
-  const deptRb  = document.querySelector('input[name="modal-appt-dept"]:checked');
+  const dept    = modalApptDept.value;
+  const spec    = modalApptSpec.value;
   const status  = modalApptType.value; // "regular" أو "makeup"
-  if (!childId || !deptRb) {
-    showToast("يرجى اختيار الطفل والقسم", "error");
-    return;
-  }
-  const dept = deptRb.value;
-  const spec = assignSpecialist(day, time);
 
-  const ch = children[childId];
-  if (!ch) {
-    showToast("الطفل غير موجود.", "error");
+  if (!childId || !dept || !spec) {
+    showToast("يرجى اختيار الطفل والقسم والأخصائي", "error");
     return;
   }
-  if (ch.paused === "true") {
+  if (children[childId].paused === "true") {
     showToast("هذا الطفل متوقف مؤقتًا، لا يمكن حجز موعد.", "error");
     return;
   }
-  if (status === "regular" && ch.sessionsLeft <= 0) {
+  if (status === "regular" && children[childId].sessionsLeft <= 0) {
     showToast("انتهت جلسات الطفل، يرجى تجديد الاشتراك أولًا.", "error");
     return;
   }
 
   if (status === "regular") {
-    update(ref(db, "children/" + childId), { sessionsLeft: ch.sessionsLeft - 1 });
+    // نقص جلسة واحدة
+    update(ref(db, "children/" + childId), {
+      sessionsLeft: children[childId].sessionsLeft - 1
+    });
   }
 
   if (editingAppointmentKey === null) {
@@ -513,16 +553,21 @@ formModalAppointment.addEventListener("submit", (e) => {
       status,
       createdAt: new Date().toISOString()
     });
-    showToast("تم إضافة الموعد بنجاح", "success");
+    showToast("تمت إضافة الموعد بنجاح", "success");
   } else {
     const oldAp = appointments[editingAppointmentKey];
-    if (oldAp.status === "regular" && status === "makeup") {
-      update(ref(db, "children/" + childId), { sessionsLeft: ch.sessionsLeft + 1 });
-    }
+    // إذا كنا نغيّر من “تعويض” إلى “عادي”، نقص جلسة ثانية:
     if (oldAp.status === "makeup" && status === "regular") {
-      update(ref(db, "children/" + childId), { sessionsLeft: ch.sessionsLeft - 1 });
+      update(ref(db, "children/" + childId), {
+        sessionsLeft: children[childId].sessionsLeft - 1
+      });
     }
-
+    // إذا نغيّرنا من “عادي” إلى “تعويض”، نعيد جلسة:
+    if (oldAp.status === "regular" && status === "makeup") {
+      update(ref(db, "children/" + childId), {
+        sessionsLeft: children[childId].sessionsLeft + 1
+      });
+    }
     update(ref(db, "appointments/" + editingAppointmentKey), {
       childId,
       day,
@@ -541,35 +586,12 @@ modalApptCancel.addEventListener("click", () => {
 btnAddAppointment.addEventListener("click", openAddAppointment);
 
 // -------------------------------------------------
-// 14) وظيفة تعيين الأخصائي تلقائيًّا بناءً على التوفر
-// -------------------------------------------------
-function assignSpecialist(day, time) {
-  for (const key in specialists) {
-    const sp = specialists[key];
-    if (sp.days.includes(day) && sp.times.includes(time)) {
-      return sp.name;
-    }
-  }
-  return "";
-}
-function reassignAllAppointments() {
-  for (const key in appointments) {
-    const ap = appointments[key];
-    if (ap.status === "regular") {
-      const newSpec = assignSpecialist(ap.day, ap.time);
-      update(ref(db, "appointments/" + key), { spec: newSpec });
-    }
-  }
-}
-
-// -------------------------------------------------
-// 15) التعامل مع غياب الموعد (Mark Missed) وتعويض (Makeup)
+// 16) تسجيل غياب أو فتح تعويض
 // -------------------------------------------------
 window.markMissed = function(key) {
   update(ref(db, "appointments/" + key), { status: "missed" });
   showToast("تمّ تسجيل غياب الموعد. يمكنك الآن إضافة تعويض.", "info");
 };
-
 window.openMakeupAppointment = function(missedKey) {
   editingAppointmentKey = null;
   formModalAppointment.reset();
@@ -577,15 +599,15 @@ window.openMakeupAppointment = function(missedKey) {
   modalApptChild.value = missedAppt.childId;
   modalApptDay.value   = missedAppt.day;
   modalApptTime.value  = missedAppt.time;
+  modalApptDept.value  = missedAppt.dept;
   modalApptType.value  = "makeup";
-  document.querySelectorAll('input[name="modal-appt-dept"]').forEach(rb => {
-    rb.checked = (rb.value === missedAppt.dept);
-  });
+  populateSpecialistDropdown();
+  modalApptSpec.value  = missedAppt.spec;
   modalAppointment.classList.remove("hidden");
 };
 
 // -------------------------------------------------
-// 16) إرسال جدول الأخصائي عبر EmailJS
+// 17) إرسال جدول الأخصائي عبر EmailJS
 // -------------------------------------------------
 btnSendEmail.addEventListener("click", () => {
   const specName = sendFilterInput.value.trim();
@@ -594,7 +616,7 @@ btnSendEmail.addEventListener("click", () => {
     showToast("يرجى إدخال اسم الأخصائي والبريد الإلكتروني", "error");
     return;
   }
-  // فلترة المواعيد حسب اسم الأخصائي (بألّاية حال لا تراعي حساسية الأحرف):
+  // اجمع جميع المواعيد حسب اسم الأخصائي (غير حساس لحالة الأحرف)
   const apptsForSpec = Object.values(appointments).filter(
     a => a.spec && a.spec.toLowerCase() === specName.toLowerCase()
   );
@@ -602,7 +624,7 @@ btnSendEmail.addEventListener("click", () => {
     showToast("لا توجد مواعيد لهذا الأخصائي", "error");
     return;
   }
-  // إنشاء جدول HTML صغير داخل البريد:
+  // أنشئ جدول HTML صغير داخل البريد:
   let htmlTable = `
     <h3 style="background: var(--clr-header-bg); color: white; padding: 8px; border-radius: 4px; text-align: center;">
       جدول مواعيد ${specName}
@@ -633,7 +655,7 @@ btnSendEmail.addEventListener("click", () => {
 });
 
 // -------------------------------------------------
-// 17) التقارير الأسبوعية (Expiring & Paused)
+// 18) التقارير الأسبوعية
 // -------------------------------------------------
 function renderReports() {
   reportExpiringChildren.innerHTML = "";
@@ -647,7 +669,7 @@ function renderReports() {
     }
     if (ch.sessionsLeft <= 2 && ch.sessionsLeft > 0) {
       const li2 = document.createElement("li");
-      li2.textContent = `${ch.name} ( ${ch.sessionsLeft} جلسات متبقية )`;
+      li2.textContent = `${ch.name} (${ch.sessionsLeft} جلسات متبقية)`;
       reportExpiringChildren.appendChild(li2);
     }
     if (ch.sessionsLeft === 0) {
@@ -669,7 +691,7 @@ function renderReports() {
 }
 
 // -------------------------------------------------
-// 18) تهيئة الواجهة عند تحميل الصفحة
+// 19) التهيئة عند تحميل الصفحة
 // -------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   deactivateAllTabs();

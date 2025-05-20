@@ -5,13 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام مواعيد المركز</title>
 
-  <!-- ===== Tailwind CSS ===== -->
+  <!-- ===== Tailwind CSS (CDN) ===== -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- ===== خطّ عربي Tajawal ===== -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 
-  <!-- ===== تهيئة Firebase ===== -->
-  <script type="module" src="./firebase-config.js"></script>
+  <!-- ===== إعداد Firebase (v8) ===== -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // ضع هنا إعدادات مشروع Firebase الخاصة بك:
+    var firebaseConfig = {
+      apiKey: "AIzaSyBinpejpZQv71xxhJrlYcET-uNLPL0pROY",
+      authDomain: "ynmo-center-scheduler.firebaseapp.com",
+      databaseURL: "https://ynmo-center-scheduler-default-rtdb.firebaseio.com",
+      projectId: "ynmo-center-scheduler",
+      storageBucket: "ynmo-center-scheduler.firebasestorage.app",
+      messagingSenderId: "287665928063",
+      appId: "1:287665928063:web:67f6bccd66a25ef0118c4a"
+    };
+    // تهيئة Firebase
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+  </script>
+
+  <!-- ===== EmailJS (صحيفة) ===== -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
+  <script>
+    // إعداد EmailJS بالمفتاح العام (Public Key)
+    (function(){
+      emailjs.init("Ol1_k8IqKWQbPcbNv");
+    })();
+  </script>
 
   <!-- ===== CSS إضافي (ألوان وهوية المركز) ===== -->
   <style>
@@ -409,7 +434,7 @@
     </div>
   </div>
 
-  <!-- ===== ربط ملف الجافاسكربت (نمط ES Module) ===== -->
-  <script type="module" src="./app.js"></script>
+  <!-- ===== ملف الجافاسكربت ===== -->
+  <script src="./app.js"></script>
 </body>
 </html>

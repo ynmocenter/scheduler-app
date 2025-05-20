@@ -12,19 +12,21 @@ import {
   update
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-// 2) إعداد EmailJS
-// استخدم المفتاح العام (Public Key) الذي حصلت عليه من EmailJS
-const EMAILJS_USER_ID     = "Ol1_k8IqKWQbPcbNv";
-const EMAILJS_SERVICE_ID  = "service_cuzf74k";
-const EMAILJS_TEMPLATE_ID = "template_b04f8pi";
+// 2) استيراد EmailJS كنمط ES Module
+import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.esm.min.js";
+
+// 3) إعداد EmailJS
+const EMAILJS_USER_ID     = "Ol1_k8IqKWQbPcbNv";    // المفتاح العام (Public Key)
+const EMAILJS_SERVICE_ID  = "service_cuzf74k";      // خدمة EmailJS ID
+const EMAILJS_TEMPLATE_ID = "template_b04f8pi";     // قالب EmailJS ID
 emailjs.init(EMAILJS_USER_ID);
 
-// 3) متغيّرات عالمية لحفظ البيانات مؤقتًا من Firebase
+// 4) متغيّرات عالمية لحفظ البيانات مؤقتًا من Firebase
 let children     = {}; // بيانات جميع الأطفال
 let specialists  = {}; // بيانات جميع الأخصائيين (مع dept)
 let appointments = {}; // بيانات جميع المواعيد
 
-// 4) عناصر DOM
+// 5) عناصر DOM
 const toastContainer = document.getElementById("toast-container");
 
 // تبويبات
@@ -95,7 +97,7 @@ const modalApptCancel        = document.getElementById("modal-appt-cancel");
 let editingAppointmentKey    = null;
 
 // -------------------------------------------------
-// 5) دوال Toast لإظهار التنبيهات
+// 6) دوال Toast لإظهار التنبيهات
 // -------------------------------------------------
 function showToast(message, type = "success") {
   const div = document.createElement("div");
@@ -106,7 +108,7 @@ function showToast(message, type = "success") {
 }
 
 // -------------------------------------------------
-// 6) إدارة التبويبات (Tabs)
+// 7) إدارة التبويبات (Tabs)
 // -------------------------------------------------
 function deactivateAllTabs() {
   [tabChildrenSection, tabSpecialistsSection, tabAppointmentsSection, tabReportsSection, tabSendSection]
@@ -142,7 +144,7 @@ tabSendBtn.addEventListener("click", () => {
 });
 
 // -------------------------------------------------
-// 7) مراجع Firebase
+// 8) مراجع Firebase
 // -------------------------------------------------
 const childrenRef     = ref(db, "children");
 const specialistsRef  = ref(db, "specialists");
@@ -166,7 +168,7 @@ onValue(appointmentsRef, snapshot => {
 });
 
 // -------------------------------------------------
-// 8) عرض جدول الأطفال (renderChildren)
+// 9) عرض جدول الأطفال (renderChildren)
 // -------------------------------------------------
 function renderChildren() {
   tableChildrenBody.innerHTML = "";
@@ -211,7 +213,7 @@ function renderChildren() {
 }
 
 // -------------------------------------------------
-// 9) فتح المودال لإضافة طفل أو تعديل بياناته
+// 10) فتح المودال لإضافة طفل أو تعديل بياناته
 // -------------------------------------------------
 function openAddChild() {
   editingChildKey = null;
@@ -303,7 +305,7 @@ modalChildCancel.addEventListener("click", () => {
 btnAddChild.addEventListener("click", openAddChild);
 
 // -------------------------------------------------
-// 10) عرض جدول الأخصائيين (renderSpecialists)
+// 11) عرض جدول الأخصائيين (renderSpecialists)
 // -------------------------------------------------
 function renderSpecialists() {
   tableSpecialistsBody.innerHTML = "";
@@ -327,7 +329,7 @@ function renderSpecialists() {
 }
 
 // -------------------------------------------------
-// 11) فتح المودال لإضافة أو تعديل أخصائي
+// 12) فتح المودال لإضافة أو تعديل أخصائي
 // -------------------------------------------------
 function openAddSpecialist() {
   editingSpecialistKey = null;
@@ -379,7 +381,7 @@ modalSpecCancel.addEventListener("click", () => {
 btnAddSpecialist.addEventListener("click", openAddSpecialist);
 
 // -------------------------------------------------
-// 12) ملء قائمة الأطفال في مودال الموعد
+// 13) ملء قائمة الأطفال في مودال الموعد
 // -------------------------------------------------
 function populateChildDropdown() {
   modalApptChild.innerHTML = `<option value="">-- اختر الطفل --</option>`;
@@ -392,7 +394,7 @@ function populateChildDropdown() {
 }
 
 // -------------------------------------------------
-// 13) عرض جدول المواعيد (renderAppointments)
+// 14) عرض جدول المواعيد (renderAppointments)
 // -------------------------------------------------
 function renderAppointments() {
   tableAppointmentsBody.innerHTML = "";
@@ -441,7 +443,7 @@ function renderAppointments() {
 }
 
 // -------------------------------------------------
-// 14) فتح مودال إضافة / تعديل موعد
+// 15) فتح مودال إضافة / تعديل موعد
 // -------------------------------------------------
 function openAddAppointment() {
   editingAppointmentKey = null;
@@ -551,7 +553,7 @@ modalApptCancel.addEventListener("click", () => {
 btnAddAppointment.addEventListener("click", openAddAppointment);
 
 // -------------------------------------------------
-// 15) تسجيل غياب أو فتح تعويض
+// 16) تسجيل غياب أو فتح تعويض
 // -------------------------------------------------
 window.markMissed = function(key) {
   update(ref(db, "appointments/" + key), { status: "missed" });
@@ -571,7 +573,7 @@ window.openMakeupAppointment = function(missedKey) {
 };
 
 // -------------------------------------------------
-// 16) إرسال جدول الأخصائي عبر EmailJS
+// 17) إرسال جدول الأخصائي عبر EmailJS
 // -------------------------------------------------
 btnSendEmail.addEventListener("click", () => {
   const specName = sendFilterInput.value.trim();
@@ -580,6 +582,7 @@ btnSendEmail.addEventListener("click", () => {
     showToast("يرجى إدخال اسم الأخصائي والبريد الإلكتروني", "error");
     return;
   }
+
   // اجمع جميع المواعيد حسب اسم الأخصائي (غير حساس لحالة الأحرف)
   const apptsForSpec = Object.values(appointments).filter(
     a => a.spec && a.spec.toLowerCase() === specName.toLowerCase()
@@ -588,6 +591,7 @@ btnSendEmail.addEventListener("click", () => {
     showToast("لا توجد مواعيد لهذا الأخصائي", "error");
     return;
   }
+
   // أنشئ جدول HTML داخل البريد:
   let htmlTable = `
     <h3 style="background: var(--clr-header-bg); color: white; padding: 8px; border-radius: 4px; text-align: center;">
@@ -614,7 +618,7 @@ btnSendEmail.addEventListener("click", () => {
     schedule_html: htmlTable
   };
 
-  // نمرّر Public Key كوسيط رابع (لضمان عمل الإرسال):
+  // نمرّر Public Key كوسيط رابع:
   emailjs.send(
     EMAILJS_SERVICE_ID,
     EMAILJS_TEMPLATE_ID,
@@ -632,7 +636,7 @@ btnSendEmail.addEventListener("click", () => {
 });
 
 // -------------------------------------------------
-// 17) التقارير الأسبوعية
+// 18) التقارير الأسبوعية
 // -------------------------------------------------
 function renderReports() {
   reportExpiringChildren.innerHTML = "";
@@ -668,7 +672,7 @@ function renderReports() {
 }
 
 // -------------------------------------------------
-// 18) التهيئة عند تحميل الصفحة
+// 19) التهيئة عند تحميل الصفحة
 // -------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   deactivateAllTabs();

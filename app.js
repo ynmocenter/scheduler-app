@@ -15,15 +15,15 @@ import {
 // 2) استيراد EmailJS كنمط ES Module
 import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.esm.min.js";
 
-// 3) إعداد EmailJS
-const EMAILJS_USER_ID     = "Ol1_k8IqKWQbPcbNv";    // المفتاح العام (Public Key)
-const EMAILJS_SERVICE_ID  = "service_cuzf74k";      // خدمة EmailJS ID
-const EMAILJS_TEMPLATE_ID = "template_b04f8pi";     // قالب EmailJS ID
+// 3) إعداد EmailJS (احرص على مطابقة هذه القيم مع إعداداتك في حساب EmailJS)
+const EMAILJS_USER_ID     = "Ol1_k8IqKWQbPcbNv";    // مفتاحك العام (Public Key)
+const EMAILJS_SERVICE_ID  = "service_cuzf74k";      // Service ID في EmailJS
+const EMAILJS_TEMPLATE_ID = "template_b04f8pi";     // Template ID في EmailJS
 emailjs.init(EMAILJS_USER_ID);
 
 // 4) متغيّرات عالمية لحفظ البيانات مؤقتًا من Firebase
 let children     = {}; // بيانات جميع الأطفال
-let specialists  = {}; // بيانات جميع الأخصائيين (مع dept)
+let specialists  = {}; // بيانات جميع الأخصائيين
 let appointments = {}; // بيانات جميع المواعيد
 
 // 5) عناصر DOM
@@ -90,8 +90,7 @@ const modalApptChild         = document.getElementById("modal-appt-child");
 const modalApptDay           = document.getElementById("modal-appt-day");
 const modalApptTime          = document.getElementById("modal-appt-time");
 const modalApptDept          = document.getElementById("modal-appt-dept");
-// حقل الأخصائي أصبح حقل نصي
-const modalApptSpec          = document.getElementById("modal-appt-spec");
+const modalApptSpec          = document.getElementById("modal-appt-spec");   // حقل نصي لاسم الأخصائي
 const modalApptType          = document.getElementById("modal-appt-type");
 const modalApptCancel        = document.getElementById("modal-appt-cancel");
 let editingAppointmentKey    = null;
@@ -443,7 +442,7 @@ function renderAppointments() {
 }
 
 // -------------------------------------------------
-// 15) فتح مودال إضافة / تعديل موعد
+// 15) فتح المودال لإضافة / تعديل موعد
 // -------------------------------------------------
 function openAddAppointment() {
   editingAppointmentKey = null;
@@ -452,7 +451,7 @@ function openAddAppointment() {
   modalApptDay.value   = "السبت";
   modalApptTime.value  = "1:00 - 1:40";
   modalApptDept.value  = "";
-  modalApptSpec.value  = "";       // حقل نصي يدوياً
+  modalApptSpec.value  = "";       
   modalApptType.value  = "regular";
   modalAppointment.classList.remove("hidden");
 }
@@ -463,7 +462,7 @@ window.openEditAppointment = function(key) {
   modalApptDay.value   = ap.day;
   modalApptTime.value  = ap.time;
   modalApptDept.value  = ap.dept;
-  modalApptSpec.value  = ap.spec;  // نضع الاسم المكتوب مسبقًا
+  modalApptSpec.value  = ap.spec;  
   modalApptType.value  = ap.status === "makeup" ? "makeup" : "regular";
   modalAppointment.classList.remove("hidden");
 };
@@ -486,7 +485,7 @@ formModalAppointment.addEventListener("submit", (e) => {
   const day     = modalApptDay.value;
   const time    = modalApptTime.value;
   const dept    = modalApptDept.value;
-  const spec    = modalApptSpec.value.trim();   // نأخذ الاسم المكتوب يدويًا
+  const spec    = modalApptSpec.value.trim();
   const status  = modalApptType.value; // "regular" أو "makeup"
 
   if (!childId || !dept || !spec) {
@@ -516,7 +515,7 @@ formModalAppointment.addEventListener("submit", (e) => {
       day,
       time,
       dept,
-      spec,              // الاسم المكتوب يدويًا
+      spec,
       status,
       createdAt: new Date().toISOString()
     });

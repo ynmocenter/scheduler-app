@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نظام مواعيد المركز</title>
 
-  <!-- ===== Tailwind CSS (CDN) ===== -->
+  <!-- ===== Tailwind CSS ===== -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- ===== خطّ عربي Tajawal ===== -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 
-  <!-- ===== إعداد Firebase (v8) ===== -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script>
-    // ضع هنا إعدادات مشروع Firebase الخاصة بك:
-    var firebaseConfig = {
+  <!-- ===== إعداد Firebase v9 (شامل) ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
       apiKey: "AIzaSyBinpejpZQv71xxhJrlYcET-uNLPL0pROY",
       authDomain: "ynmo-center-scheduler.firebaseapp.com",
       databaseURL: "https://ynmo-center-scheduler-default-rtdb.firebaseio.com",
@@ -25,20 +25,11 @@
       appId: "1:287665928063:web:67f6bccd66a25ef0118c4a"
     };
     // تهيئة Firebase
-    firebase.initializeApp(firebaseConfig);
-    var database = firebase.database();
+    window.appFirebase = initializeApp(firebaseConfig);
+    window.dbFirebase  = getDatabase(window.appFirebase);
   </script>
 
-  <!-- ===== EmailJS (صحيفة) ===== -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
-  <script>
-    // إعداد EmailJS بالمفتاح العام (Public Key)
-    (function(){
-      emailjs.init("Ol1_k8IqKWQbPcbNv");
-    })();
-  </script>
-
-  <!-- ===== CSS إضافي (ألوان وهوية المركز) ===== -->
+  <!-- ===== CSS لهوية المركز ===== -->
   <style>
     html, body {
       margin: 0; padding: 0; height: 100%;
@@ -70,9 +61,9 @@
     .logo-img {
       position: absolute;
       left: 1rem;
-      height: 32px; /* حجم مناسب */
+      height: 32px;
       width: auto;
-      object-contain;
+      object-fit: contain;
     }
     header h1 {
       font-size: 1.5rem;
@@ -104,7 +95,6 @@
     .card {
       @apply bg-card-bg p-6 rounded-lg shadow-md;
     }
-
     /* جداول منسقة */
     .styled-table {
       @apply table-auto w-full border-collapse mt-4;
@@ -121,7 +111,6 @@
     .styled-table tr:hover {
       @apply bg-gray-100;
     }
-
     /* Forms */
     input, select {
       @apply w-full mt-1 p-2 border border-clr-border rounded focus:ring-2 focus:ring-accent focus:outline-none text-sm;
@@ -129,7 +118,6 @@
     .checkbox-group label {
       @apply flex items-center gap-2 text-sm;
     }
-
     /* المودالات */
     .modal-bg {
       @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
@@ -245,7 +233,7 @@
         </div>
       </section>
 
-      <!-- TAB 4: التقارير -->
+      <!-- TAB 4: التقارير الأسبوعية -->
       <section id="tab-reports" class="hidden">
         <h2 class="text-xl font-semibold mb-4">4. التقارير الأسبوعية</h2>
         <div class="card space-y-6">
@@ -434,7 +422,7 @@
     </div>
   </div>
 
-  <!-- ===== ملف الجافاسكربت ===== -->
-  <script src="./app.js"></script>
+  <!-- ===== ربط ملف الجافاسكربت ===== -->
+  <script type="module" src="./app.js"></script>
 </body>
 </html>

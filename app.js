@@ -141,7 +141,7 @@ tabSendBtn.addEventListener("click", () => {
 });
 
 // =======================================
-// 6) مراجع Firebase (Realtime Database listeners)
+// 6) ربط Firebase Realtime Database listeners
 // =======================================
 const childrenRef     = ref(db, "children");
 const specialistsRef  = ref(db, "specialists");
@@ -281,8 +281,12 @@ formModalChild.addEventListener("submit", (e) => {
       sessionsTotal,
       sessionsLeft,
       paused
+    }).then(() => {
+      showToast("تمت إضافة الطفل بنجاح", "success");
+    }).catch(err => {
+      console.error("خطأ أثناء إضافة الطفل:", err);
+      showToast("حدث خطأ أثناء الإضافة", "error");
     });
-    showToast("تمت إضافة الطفل بنجاح", "success");
   } else {
     update(ref(db, "children/" + editingChildKey), {
       name,
@@ -291,8 +295,12 @@ formModalChild.addEventListener("submit", (e) => {
       sessionsTotal,
       sessionsLeft,
       paused
+    }).then(() => {
+      showToast("تم تعديل بيانات الطفل", "success");
+    }).catch(err => {
+      console.error("خطأ أثناء تعديل الطفل:", err);
+      showToast("حدث خطأ أثناء التعديل", "error");
     });
-    showToast("تم تعديل بيانات الطفل", "success");
   }
   modalChild.classList.add("hidden");
 });
@@ -346,8 +354,12 @@ window.openEditSpecialist = function(key) {
 };
 window.deleteSpecialist = function(key) {
   if (!confirm("هل تريد حذف هذا الأخصائي؟")) return;
-  remove(ref(db, "specialists/" + key));
-  showToast("تم حذف الأخصائي", "info");
+  remove(ref(db, "specialists/" + key))
+    .then(() => showToast("تم حذف الأخصائي", "info"))
+    .catch(err => {
+      console.error("خطأ أثناء حذف الأخصائي:", err);
+      showToast("حدث خطأ أثناء الحذف", "error");
+    });
 };
 formModalSpecialist.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -364,11 +376,19 @@ formModalSpecialist.addEventListener("submit", (e) => {
 
   if (editingSpecialistKey === null) {
     const newRef = push(ref(db, "specialists"));
-    set(newRef, { name, email, dept, days, times });
-    showToast("تمت إضافة الأخصائي بنجاح", "success");
+    set(newRef, { name, email, dept, days, times })
+      .then(() => showToast("تمت إضافة الأخصائي بنجاح", "success"))
+      .catch(err => {
+        console.error("خطأ أثناء إضافة الأخصائي:", err);
+        showToast("حدث خطأ أثناء الإضافة", "error");
+      });
   } else {
-    update(ref(db, "specialists/" + editingSpecialistKey), { name, email, dept, days, times });
-    showToast("تم تعديل بيانات الأخصائي", "success");
+    update(ref(db, "specialists/" + editingSpecialistKey), { name, email, dept, days, times })
+      .then(() => showToast("تم تعديل بيانات الأخصائي", "success"))
+      .catch(err => {
+        console.error("خطأ أثناء تعديل الأخصائي:", err);
+        showToast("حدث خطأ أثناء التعديل", "error");
+      });
   }
   modalSpecialist.classList.add("hidden");
 });
@@ -476,8 +496,12 @@ window.deleteAppointment = function(key) {
     const ch = children[childKey];
     update(ref(db, "children/" + childKey), { sessionsLeft: ch.sessionsLeft + 1 });
   }
-  remove(ref(db, "appointments/" + key));
-  showToast("تم حذف الموعد", "info");
+  remove(ref(db, "appointments/" + key))
+    .then(() => showToast("تم حذف الموعد", "info"))
+    .catch(err => {
+      console.error("خطأ أثناء حذف الموعد:", err);
+      showToast("حدث خطأ أثناء الحذف", "error");
+    });
 };
 
 formModalAppointment.addEventListener("submit", (e) => {
@@ -505,6 +529,9 @@ formModalAppointment.addEventListener("submit", (e) => {
   if (status === "regular") {
     update(ref(db, "children/" + childId), {
       sessionsLeft: children[childId].sessionsLeft - 1
+    }).catch(err => {
+      console.error("خطأ أثناء إنقاص جلسة الطفل:", err);
+      showToast("حدث خطأ أثناء تحديث جلسات الطفل", "error");
     });
   }
 
@@ -518,18 +545,28 @@ formModalAppointment.addEventListener("submit", (e) => {
       spec,
       status,
       createdAt: new Date().toISOString()
+    }).then(() => {
+      showToast("تمت إضافة الموعد بنجاح", "success");
+    }).catch(err => {
+      console.error("خطأ أثناء إضافة الموعد:", err);
+      showToast("حدث خطأ أثناء الحفظ", "error");
     });
-    showToast("تمت إضافة الموعد بنجاح", "success");
   } else {
     const oldAp = appointments[editingAppointmentKey];
     if (oldAp.status === "makeup" && status === "regular") {
       update(ref(db, "children/" + childId), {
         sessionsLeft: children[childId].sessionsLeft - 1
+      }).catch(err => {
+        console.error("خطأ أثناء إنقاص جلسة الطفل:", err);
+        showToast("حدث خطأ أثناء تحديث جلسات الطفل", "error");
       });
     }
     if (oldAp.status === "regular" && status === "makeup") {
       update(ref(db, "children/" + childId), {
         sessionsLeft: children[childId].sessionsLeft + 1
+      }).catch(err => {
+        console.error("خطأ أثناء استعادة جلسة الطفل:", err);
+        showToast("حدث خطأ أثناء تحديث جلسات الطفل", "error");
       });
     }
     update(ref(db, "appointments/" + editingAppointmentKey), {
@@ -539,8 +576,12 @@ formModalAppointment.addEventListener("submit", (e) => {
       dept,
       spec,
       status
+    }).then(() => {
+      showToast("تم تعديل الموعد", "success");
+    }).catch(err => {
+      console.error("خطأ أثناء تعديل الموعد:", err);
+      showToast("حدث خطأ أثناء التعديل", "error");
     });
-    showToast("تم تعديل الموعد", "success");
   }
   modalAppointment.classList.add("hidden");
 });
@@ -553,8 +594,12 @@ btnAddAppointment.addEventListener("click", openAddAppointment);
 // 14) تسجيل غياب أو فتح تعويض
 // =======================================
 window.markMissed = function(key) {
-  update(ref(db, "appointments/" + key), { status: "missed" });
-  showToast("تمّ تسجيل غياب الموعد. يمكنك الآن إضافة تعويض.", "info");
+  update(ref(db, "appointments/" + key), { status: "missed" })
+    .then(() => showToast("تمّ تسجيل غياب الموعد. يمكنك الآن إضافة تعويض.", "info"))
+    .catch(err => {
+      console.error("خطأ أثناء تسجيل الغياب:", err);
+      showToast("حدث خطأ أثناء العملية", "error");
+    });
 };
 window.openMakeupAppointment = function(missedKey) {
   editingAppointmentKey = null;
@@ -570,29 +615,17 @@ window.openMakeupAppointment = function(missedKey) {
 };
 
 // =======================================
-// 15) إرسال جدول الأخصائي عبر Web App
+// 15) إرسال جدول الأخصائي عبر Web App (GET)
 // =======================================
-async function sendScheduleViaWebApp(specName, specEmail) {
+function sendScheduleViaWebApp(specName, specEmail) {
   const webAppUrl = "https://script.google.com/macros/s/AKfycbz5DiTXocs7m-HDhhD9vAjuTFCHeJZwCgkD_lZidQ3B3G_xY0Q9dMe-nzhq8eHA1h0TvQ/exec";
-  const payload = { specName, specEmail };
+  const url = webAppUrl
+    + "?specName="  + encodeURIComponent(specName)
+    + "&specEmail=" + encodeURIComponent(specEmail);
 
-  try {
-    const response = await fetch(webAppUrl, {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const result = await response.json();
-    if (result.status === "success") {
-      showToast(result.message, "success");
-    } else {
-      showToast("خطأ: " + result.message, "error");
-    }
-  } catch (err) {
-    console.error("Error calling Web App:", err);
-    showToast("خطأ أثناء الاتصال بالخدمة.\nتحقق من إعدادات Web App.", "error");
-  }
+  // فتح نافذة جديدة ترسل الطلب إلى Web App
+  window.open(url, "_blank");
+  showToast("تم إرسال طلب جدول " + specName + " إلى الخدمة.", "success");
 }
 
 btnSendEmail.addEventListener("click", () => {

@@ -231,8 +231,12 @@ window.openEditChild = function(key) {
 };
 window.deleteChild = function(key) {
   if (!confirm("هل تريد حذف هذا الطفل؟")) return;
-  remove(ref(db, "children/" + key));
-  showToast("تم حذف بيانات الطفل", "info");
+  remove(ref(db, "children/" + key))
+    .then(() => showToast("تم حذف بيانات الطفل", "info"))
+    .catch(err => {
+      console.error("خطأ أثناء حذف الطفل:", err);
+      showToast("حدث خطأ أثناء الحذف", "error");
+    });
 };
 formModalChild.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -281,9 +285,9 @@ formModalChild.addEventListener("submit", (e) => {
       sessionsTotal,
       sessionsLeft,
       paused
-    }).then(() => {
-      showToast("تمت إضافة الطفل بنجاح", "success");
-    }).catch(err => {
+    })
+    .then(() => showToast("تمت إضافة الطفل بنجاح", "success"))
+    .catch(err => {
       console.error("خطأ أثناء إضافة الطفل:", err);
       showToast("حدث خطأ أثناء الإضافة", "error");
     });
@@ -295,9 +299,9 @@ formModalChild.addEventListener("submit", (e) => {
       sessionsTotal,
       sessionsLeft,
       paused
-    }).then(() => {
-      showToast("تم تعديل بيانات الطفل", "success");
-    }).catch(err => {
+    })
+    .then(() => showToast("تم تعديل بيانات الطفل", "success"))
+    .catch(err => {
       console.error("خطأ أثناء تعديل الطفل:", err);
       showToast("حدث خطأ أثناء التعديل", "error");
     });
@@ -618,12 +622,15 @@ window.openMakeupAppointment = function(missedKey) {
 // 15) إرسال جدول الأخصائي عبر Web App (GET)
 // =======================================
 function sendScheduleViaWebApp(specName, specEmail) {
-  const webAppUrl = "https://script.google.com/macros/s/AKfycbz5DiTXocs7m-HDhhD9vAjuTFCHeJZwCgkD_lZidQ3B3G_xY0Q9dMe-nzhq8eHA1h0TvQ/exec";
+  // الصق رابط Web App الجديد حرفيًا هنا:
+  const webAppUrl = "https://script.google.com/macros/s/AKfycbxJm-W76K9qs_SaKL0qWaRtmtOfQAMe091ia4ELwLn4QQ-IQ09rh5j20Cz9W4lgDzSKhw/exec";
+
+  // بناء رابط GET بمعاملَي specName و specEmail
   const url = webAppUrl
     + "?specName="  + encodeURIComponent(specName)
     + "&specEmail=" + encodeURIComponent(specEmail);
 
-  // فتح نافذة جديدة ترسل الطلب إلى Web App
+  // فتح نافذة جديدة ترسل الطلب مباشرةً إلى Web App
   window.open(url, "_blank");
   showToast("تم إرسال طلب جدول " + specName + " إلى الخدمة.", "success");
 }

@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>نظام مواعيد المركز</title>
   <style>
-    /* مبسّط للتنسيق */
-    body { font-family: 'Tajawal', sans-serif; background: #f9f1e5; color:#333; margin:0 }
+    body { font-family: 'Tajawal',sans-serif; background:#f9f1e5; color:#333; margin:0 }
     header { background:#142445; color:#fff; display:flex; align-items:center; padding:10px }
     header img { height:50px; margin-left:15px }
     header h1 { font-size:1.5rem; }
@@ -19,6 +18,9 @@
     th, td { border:1px solid #ccc; padding:8px; text-align:center }
     th { background:#8bd5c8 }
     button { padding:6px 12px; margin:5px; cursor:pointer }
+    /* مودال */
+    #modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.4); align-items:center;justify-content:center }
+    #modal .content { background:#fff; padding:20px; border-radius:8px; min-width:300px }
   </style>
 </head>
 <body>
@@ -35,59 +37,43 @@
     <button data-tab="reports">التقارير</button>
   </nav>
 
-  <!-- 1. إدارة الأطفال -->
+  <!-- الأطفال -->
   <section id="children" class="active">
-    <h2>١. إدارة الأطفال</h2>
-    <button onclick="openChildModal()">إضافة طفل</button>
-    <table id="tblChildren">
-      <thead>
-        <tr>
-          <th>#</th><th>اسم</th><th>بكيج</th><th>بدء</th><th>كلي</th><th>متبقي</th><th>حالة</th><th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <h2>إدارة الأطفال</h2>
+    <button onclick="openModal('child')">إضافة طفل</button>
+    <table id="tblChildren"><thead>
+      <tr><th>#</th><th>اسم</th><th>بكيج</th><th>بدء</th><th>كلي</th><th>متبقي</th><th>حالة</th><th>إجراءات</th></tr>
+    </thead><tbody></tbody></table>
   </section>
 
-  <!-- 2. إدارة الأخصائيين -->
+  <!-- الأخصائيون -->
   <section id="specialists">
-    <h2>٢. الأخصائيون</h2>
-    <button onclick="openSpecModal()">إضافة أخصائي</button>
-    <table id="tblSpecs">
-      <thead>
-        <tr>
-          <th>#</th><th>اسم</th><th>بريد</th><th>قسم</th><th>أيام</th><th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <h2>إدارة الأخصائيين</h2>
+    <button onclick="openModal('spec')">إضافة أخصائي</button>
+    <table id="tblSpecs"><thead>
+      <tr><th>#</th><th>اسم</th><th>بريد</th><th>قسم</th><th>أيام</th><th>إجراءات</th></tr>
+    </thead><tbody></tbody></table>
   </section>
 
-  <!-- 3. حجز المواعيد -->
+  <!-- المواعيد -->
   <section id="appointments">
-    <h2>٣. المواعيد</h2>
+    <h2>حجز المواعيد</h2>
     <button onclick="autoScheduleAll()">جدولة تلقائية</button>
-    <table id="tblAppts">
-      <thead>
-        <tr>
-          <th>#</th><th>طفل</th><th>تاريخ</th><th>وقت</th><th>قسم</th><th>أخصائي</th><th>نوع</th><th>حالة</th><th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <table id="tblAppts"><thead>
+      <tr><th>#</th><th>طفل</th><th>تاريخ</th><th>وقت</th><th>قسم</th><th>أخصائي</th><th>نوع</th><th>حالة</th><th>إجراءات</th></tr>
+    </thead><tbody></tbody></table>
   </section>
 
-  <!-- 4. التقارير -->
+  <!-- التقارير -->
   <section id="reports">
-    <h2>٤. التقارير</h2>
+    <h2>التقارير</h2>
     <div id="endingReport"></div>
     <div id="pausedReport"></div>
   </section>
 
-  <!-- نوافذ المودال -->
-  <div id="modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-       background:rgba(0,0,0,0.4);align-items:center;justify-content:center;display:flex">
-    <div style="background:#fff;padding:20px;border-radius:8px;min-width:300px">
+  <!-- مودال مشترك -->
+  <div id="modal">
+    <div class="content">
       <h3 id="modalTitle"></h3>
       <form id="modalForm"></form>
       <div style="margin-top:10px;text-align:left">
@@ -97,8 +83,10 @@
     </div>
   </div>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <!-- الكود -->
   <script src="app.js"></script>
 </body>
 </html>

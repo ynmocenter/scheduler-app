@@ -26,19 +26,17 @@
   </script>
   <style>
     html, body { margin:0; padding:0; height:100%; font-family:'Tajawal',sans-serif; background:#F7F9FA; color:#1F2937; }
-    :root { --clr-primary:#0B2545; --clr-accent:#64C8B0; --clr-border:#E5E7EB; --clr-header:#0B2545; }
-    header { background:var(--clr-header); height:56px; display:flex; align-items:center; justify-content:center; color:white; }
+    header { background:#0B2545; height:56px; display:flex; align-items:center; justify-content:center; color:white; }
     .btn-primary { @apply bg-accent text-white py-2 px-4 rounded; }
     .btn-tab { @apply text-sm py-2 px-4 border-b-2 border-transparent hover:border-accent transition; }
-    .btn-tab-active { @apply font-semibold text-accent; border-bottom-color:var(--clr-accent); }
+    .btn-tab-active { @apply text-accent font-semibold; border-bottom-color:var(--tw-color-accent); }
     .modal-bg { @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50; }
     .modal-card { @apply bg-white p-6 rounded-lg shadow-lg w-full max-w-md; }
-    input, select { @apply w-full p-2 border border-clr-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-accent mt-1; }
+    input, select { @apply w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-accent mt-1; }
     table { @apply w-full border-collapse; }
-    th, td { @apply border border-clr-border px-4 py-2 text-center; }
-    th { @apply bg-gray-100 font-medium; }
+    th, td { @apply border border-gray-300 px-4 py-2 text-center; }
+    th { @apply bg-gray-100; }
     tr:nth-child(even) { @apply bg-gray-50; }
-    tr:hover { @apply bg-gray-100; }
     .toast { @apply fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded shadow text-white text-sm z-50; }
     .toast-success { background:#34D399; }
     .toast-error { background:#F87171; }
@@ -47,52 +45,48 @@
 </head>
 <body>
   <header><h1 class="text-xl font-semibold">نظام مواعيد المركز</h1></header>
-  <main class="container mx-auto px-4 py-6 space-y-8">
+  <main class="container mx-auto px-4 py-6">
     <div id="toast-container"></div>
-    <nav class="flex gap-6 border-b-2 border-clr-border">
-      <button id="tab-children-btn" class="btn-tab btn-tab-active">الأطفال</button>
+    <!-- التبويبات -->
+    <nav class="flex gap-4 mb-6">
+      <button id="tab-children-btn" class="btn-tab">الأطفال</button>
       <button id="tab-specialists-btn" class="btn-tab">الأخصائيون</button>
       <button id="tab-appointments-btn" class="btn-tab">الزيارات</button>
       <button id="tab-reports-btn" class="btn-tab">التقارير</button>
       <button id="tab-send-btn" class="btn-tab">إرسال جدول</button>
     </nav>
-
-    <!-- 1. الأطفال -->
-    <section id="tab-children">
-      <h2 class="text-lg font-semibold mb-4">1. إدارة الأطفال والاشتراكات</h2>
-      <button id="btn-add-child" class="btn-primary mb-4">إضافة طفل جديد</button>
+    <!-- محتوى التبويبات -->
+    <section id="tab-children" class="tab-section">
+      <h2 class="text-lg font-semibold mb-4">إدارة الأطفال والاشتراكات</h2>
+      <button id="btn-add-child" class="btn-primary mb-4">إضافة طفل</button>
       <div class="overflow-x-auto">
         <table>
           <thead>
             <tr>
-              <th>#</th><th>الاسم</th><th>الباقة</th><th>بداية</th><th>نهاية</th><th>زيارات متبقية</th><th>متوقف</th><th>إجراءات</th>
+              <th>#</th><th>اسم الطفل</th><th>الباقة</th><th>بداية</th><th>نهاية</th><th>زيارات متبقية</th><th>متوقف</th><th>إجراءات</th>
             </tr>
           </thead>
           <tbody id="table-children-body"></tbody>
         </table>
       </div>
     </section>
-
-    <!-- 2. الأخصائيون -->
-    <section id="tab-specialists" class="hidden">
-      <h2 class="text-lg font-semibold mb-4">2. إدارة الأخصائيين</h2>
+    <section id="tab-specialists" class="tab-section hidden">
+      <h2 class="text-lg font-semibold mb-4">إدارة الأخصائيين</h2>
       <button id="btn-add-specialist" class="btn-primary mb-4">إضافة أخصائي</button>
       <div class="overflow-x-auto">
         <table>
           <thead>
             <tr>
-              <th>#</th><th>الاسم</th><th>البريد</th><th>القسم</th><th>أيام</th><th>فترات</th><th>إجراءات</th>
+              <th>#</th><th>الاسم</th><th>البريد</th><th>القسم</th><th>أيام العمل</th><th>فترات العمل</th><th>إجراءات</th>
             </tr>
           </thead>
           <tbody id="table-specialists-body"></tbody>
         </table>
       </div>
     </section>
-
-    <!-- 3. الزيارات -->
-    <section id="tab-appointments" class="hidden">
-      <h2 class="text-lg font-semibold mb-4">3. حجز الزيارات (دفعات)</h2>
-      <button id="btn-add-appointment" class="btn-primary mb-4">إدخال زيارة جديدة</button>
+    <section id="tab-appointments" class="tab-section hidden">
+      <h2 class="text-lg font-semibold mb-4">حجز الزيارات (دفعات)</h2>
+      <button id="btn-add-appointment" class="btn-primary mb-4">إدخال زيارة</button>
       <div class="overflow-x-auto">
         <table>
           <thead>
@@ -104,41 +98,38 @@
         </table>
       </div>
     </section>
-
-    <!-- 4. التقارير -->
-    <section id="tab-reports" class="hidden">
-      <h2 class="text-lg font-semibold mb-4">4. التقارير الأسبوعية</h2>
-      <div class="space-y-4">
+    <section id="tab-reports" class="tab-section hidden">
+      <h2 class="text-lg font-semibold mb-4">التقارير الأسبوعية</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 class="font-semibold">أطفال على وشك انتهاء الاشتراك</h3>
-          <ul id="report-expiring-children" class="list-disc list-inside text-sm"></ul>
+          <h3 class="font-semibold mb-2">على وشك الانتهاء</h3>
+          <ul id="report-expiring-children" class="list-disc list-inside"></ul>
         </div>
         <div>
-          <h3 class="font-semibold">أطفال متوقفون</h3>
-          <ul id="report-paused-children" class="list-disc list-inside text-sm"></ul>
+          <h3 class="font-semibold mb-2">متوقفون مؤقتًا</h3>
+          <ul id="report-paused-children" class="list-disc list-inside"></ul>
         </div>
       </div>
     </section>
-
-    <!-- 5. إرسال جدول -->
-    <section id="tab-send" class="hidden">
-      <h2 class="text-lg font-semibold mb-4">5. إرسال جدول أخصائي</h2>
+    <section id="tab-send" class="tab-section hidden">
+      <h2 class="text-lg font-semibold mb-4">إرسال جدول الأخصائي</h2>
       <div class="max-w-md">
-        <label class="block text-sm">اسم الأخصائي:</label>
-        <input id="send-filter-spec" class="w-full border p-2 mb-2" placeholder="د. أحمد" />
-        <label class="block text-sm">البريد الإلكتروني:</label>
+        <label class="block text-sm mb-1">اسم الأخصائي:</label>
+        <input id="send-filter-spec" class="w-full border p-2 mb-3" placeholder="مثال: د. أحمد" />
+        <label class="block text-sm mb-1">البريد الإلكتروني:</label>
         <input id="email-spec" type="email" class="w-full border p-2 mb-4" placeholder="example@gmail.com" />
         <button id="btn-send-email" class="btn-primary">إرسال</button>
       </div>
     </section>
   </main>
 
-  <!-- مودال الطفل -->
+  <!-- مودالات -->
+  <!-- طفل -->
   <div id="modal-child" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل طفل</h2>
       <form id="form-modal-child" class="space-y-4">
-        <div><label>اسم الطفل</label><input id="modal-child-name" required /></div>
+        <div><label>الاسم</label><input id="modal-child-name" required /></div>
         <div>
           <label>الباقة</label>
           <select id="modal-child-subtype">
@@ -152,10 +143,7 @@
         <div><label>تاريخ البداية</label><input type="date" id="modal-child-start" required /></div>
         <div>
           <label>متوقف مؤقتًا</label>
-          <select id="modal-child-paused">
-            <option value="false">لا</option>
-            <option value="true">نعم</option>
-          </select>
+          <select id="modal-child-paused"><option value="false">لا</option><option value="true">نعم</option></select>
         </div>
         <div class="flex justify-end gap-4">
           <button type="button" id="modal-child-cancel">إلغاء</button>
@@ -164,13 +152,12 @@
       </form>
     </div>
   </div>
-
-  <!-- مودال الأخصائي -->
+  <!-- أخصائي -->
   <div id="modal-specialist" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل أخصائي</h2>
       <form id="form-modal-specialist" class="space-y-4">
-        <div><label>اسم الأخصائي</label><input id="modal-spec-name" required /></div>
+        <div><label>الاسم</label><input id="modal-spec-name" required /></div>
         <div><label>البريد الإلكتروني</label><input type="email" id="modal-spec-email" required /></div>
         <div>
           <label>القسم</label>
@@ -187,8 +174,7 @@
       </form>
     </div>
   </div>
-
-  <!-- مودال الزيارة -->
+  <!-- زيارة -->
   <div id="modal-appointment" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل زيارة</h2>

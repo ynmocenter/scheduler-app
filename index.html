@@ -46,15 +46,11 @@
   </style>
 </head>
 <body>
-  <!-- HEADER -->
-  <header>
-    <h1 class="text-xl font-semibold">نظام مواعيد المركز</h1>
-  </header>
-
+  <header><h1 class="text-xl font-semibold">نظام مواعيد المركز</h1></header>
   <main class="container mx-auto px-4 py-6 space-y-8">
     <div id="toast-container"></div>
 
-    <!-- TABS -->
+    <!-- التبويبات -->
     <nav class="flex gap-6 border-b-2 border-clr-border">
       <button id="tab-children-btn" class="btn-tab btn-tab-active">الأطفال</button>
       <button id="tab-specialists-btn" class="btn-tab">الأخصائيون</button>
@@ -63,7 +59,6 @@
       <button id="tab-send-btn" class="btn-tab">إرسال جدول</button>
     </nav>
 
-    <!-- TAB CONTENTS -->
     <!-- 1. الأطفال -->
     <section id="tab-children">
       <h2 class="text-lg font-semibold mb-4">1. إدارة الأطفال والاشتراكات</h2>
@@ -132,15 +127,16 @@
       <h2 class="text-lg font-semibold mb-4">5. إرسال جدول أخصائي</h2>
       <div class="max-w-md">
         <label class="block text-sm">اسم الأخصائي:</label>
-        <input type="text" id="send-filter-spec" class="mb-2" placeholder="مثال: د. أحمد" />
+        <input type="text" id="send-filter-spec" class="mb-2 border p-2" placeholder="مثال: د. أحمد" />
         <label class="block text-sm">البريد الإلكتروني:</label>
-        <input type="email" id="email-spec" class="mb-4" placeholder="example@gmail.com" />
+        <input type="email" id="email-spec" class="mb-4 border p-2" placeholder="example@gmail.com" />
         <button id="btn-send-email" class="btn-primary">إرسال</button>
       </div>
     </section>
+
   </main>
 
-  <!-- مودال الطفل -->
+  <!-- مودال إضافة/تعديل طفل -->
   <div id="modal-child" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل طفل</h2>
@@ -178,7 +174,7 @@
     </div>
   </div>
 
-  <!-- مودال الأخصائي -->
+  <!-- مودال إضافة/تعديل أخصائي -->
   <div id="modal-specialist" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل أخصائي</h2>
@@ -217,7 +213,7 @@
     </div>
   </div>
 
-  <!-- مودال الزيارة -->
+  <!-- مودال إضافة/تعديل زيارة -->
   <div id="modal-appointment" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل زيارة</h2>

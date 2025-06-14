@@ -49,8 +49,6 @@
   <header><h1 class="text-xl font-semibold">نظام مواعيد المركز</h1></header>
   <main class="container mx-auto px-4 py-6 space-y-8">
     <div id="toast-container"></div>
-
-    <!-- التبويبات -->
     <nav class="flex gap-6 border-b-2 border-clr-border">
       <button id="tab-children-btn" class="btn-tab btn-tab-active">الأطفال</button>
       <button id="tab-specialists-btn" class="btn-tab">الأخصائيون</button>
@@ -127,24 +125,20 @@
       <h2 class="text-lg font-semibold mb-4">5. إرسال جدول أخصائي</h2>
       <div class="max-w-md">
         <label class="block text-sm">اسم الأخصائي:</label>
-        <input type="text" id="send-filter-spec" class="mb-2 border p-2" placeholder="مثال: د. أحمد" />
+        <input id="send-filter-spec" class="w-full border p-2 mb-2" placeholder="د. أحمد" />
         <label class="block text-sm">البريد الإلكتروني:</label>
-        <input type="email" id="email-spec" class="mb-4 border p-2" placeholder="example@gmail.com" />
+        <input id="email-spec" type="email" class="w-full border p-2 mb-4" placeholder="example@gmail.com" />
         <button id="btn-send-email" class="btn-primary">إرسال</button>
       </div>
     </section>
-
   </main>
 
-  <!-- مودال إضافة/تعديل طفل -->
+  <!-- مودال الطفل -->
   <div id="modal-child" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل طفل</h2>
       <form id="form-modal-child" class="space-y-4">
-        <div>
-          <label>اسم الطفل</label>
-          <input id="modal-child-name" required />
-        </div>
+        <div><label>اسم الطفل</label><input id="modal-child-name" required /></div>
         <div>
           <label>الباقة</label>
           <select id="modal-child-subtype">
@@ -155,10 +149,7 @@
             <option value="speech">تخاطب منفردة</option>
           </select>
         </div>
-        <div>
-          <label>تاريخ البداية</label>
-          <input type="date" id="modal-child-start" required />
-        </div>
+        <div><label>تاريخ البداية</label><input type="date" id="modal-child-start" required /></div>
         <div>
           <label>متوقف مؤقتًا</label>
           <select id="modal-child-paused">
@@ -174,37 +165,21 @@
     </div>
   </div>
 
-  <!-- مودال إضافة/تعديل أخصائي -->
+  <!-- مودال الأخصائي -->
   <div id="modal-specialist" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل أخصائي</h2>
       <form id="form-modal-specialist" class="space-y-4">
-        <div>
-          <label>اسم الأخصائي</label>
-          <input id="modal-spec-name" required />
-        </div>
-        <div>
-          <label>البريد الإلكتروني</label>
-          <input type="email" id="modal-spec-email" required />
-        </div>
+        <div><label>اسم الأخصائي</label><input id="modal-spec-name" required /></div>
+        <div><label>البريد الإلكتروني</label><input type="email" id="modal-spec-email" required /></div>
         <div>
           <label>القسم</label>
           <select id="modal-spec-dept">
-            <option value="تعديل سلوك">تعديل سلوك</option>
-            <option value="تخاطب">تخاطب</option>
-            <option value="تنمية مهارات">تنمية مهارات</option>
-            <option value="جلسة نفسية">جلسة نفسية</option>
-            <option value="اختبار ذكاء">اختبار ذكاء</option>
+            <option>تعديل سلوك</option><option>تخاطب</option><option>تنمية مهارات</option><option>جلسة نفسية</option><option>اختبار ذكاء</option>
           </select>
         </div>
-        <div>
-          <label>أيام العمل (مفصولة بفواصل)</label>
-          <input id="modal-spec-days" placeholder="السبت، الأحد، ..." />
-        </div>
-        <div>
-          <label>فترات العمل (مفصولة بفواصل)</label>
-          <input id="modal-spec-times" placeholder="1:00-1:40،3:20-5:20، ..." />
-        </div>
+        <div><label>أيام العمل</label><input id="modal-spec-days" placeholder="السبت، الأحد، ..." /></div>
+        <div><label>فترات العمل</label><input id="modal-spec-times" placeholder="1:00-1:40،3:20-5:20، ..." /></div>
         <div class="flex justify-end gap-4">
           <button type="button" id="modal-spec-cancel">إلغاء</button>
           <button type="submit" class="btn-primary">حفظ</button>
@@ -213,15 +188,12 @@
     </div>
   </div>
 
-  <!-- مودال إضافة/تعديل زيارة -->
+  <!-- مودال الزيارة -->
   <div id="modal-appointment" class="hidden modal-bg">
     <div class="modal-card">
       <h2 class="text-lg font-semibold mb-4">إضافة / تعديل زيارة</h2>
       <form id="form-modal-appointment" class="space-y-4">
-        <div>
-          <label>اختر الطفل</label>
-          <select id="modal-appt-child" required></select>
-        </div>
+        <div><label>اختر الطفل</label><select id="modal-appt-child" required></select></div>
         <div>
           <label>اليوم</label>
           <select id="modal-appt-day">
@@ -231,10 +203,7 @@
         <div>
           <label>الفترة (3 جلسات)</label>
           <select id="modal-appt-period">
-            <option value="1:00-3:00">1:00-3:00</option>
-            <option value="3:20-5:20">3:20-5:20</option>
-            <option value="5:20-7:20">5:20-7:20</option>
-            <option value="7:20-9:20">7:20-9:20</option>
+            <option>1:00-3:00</option><option>3:20-5:20</option><option>5:20-7:20</option><option>7:20-9:20</option>
           </select>
         </div>
         <div class="flex justify-end gap-4">

@@ -1,155 +1,173 @@
-const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+import { ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+const db = window.dbFirebase;
 
-// التخزين المحلي
-const S = {
-  children: JSON.parse(localStorage.getItem('children') || '{}'),
-  specialists: JSON.parse(localStorage.getItem('specialists') || '{}'),
-  appointments: JSON.parse(localStorage.getItem('appointments') || '{}')
-};
-function sync() {
-  localStorage.setItem('children', JSON.stringify(S.children));
-  localStorage.setItem('specialists', JSON.stringify(S.specialists));
-  localStorage.setItem('appointments', JSON.stringify(S.appointments));
-}
+let children = {}, visits = {};
 
-// التعريفات
-const packages = {
-  "24": { weekly: 2, total: 24, days: ["Saturday","Wednesday"] },
-  "36": { weekly: 3, total: 36, days: ["Saturday","Monday","Thursday"] },
-  "48": { weekly: 4, total: 48, days: ["Saturday","Monday","Wednesday","Friday"] },
-  "psychology": { weekly: 1, total: 1, days: ["Saturday"] },
-  "iq": { weekly: 1, total: 1, days: ["Saturday"] }
-};
-const timeSlots = ["13:00","15:20","17:40"];
-
-// تبديل التبويبات
-$$('nav button').forEach(btn => {
-  btn.onclick = () => {
-    $$('nav button').forEach(b => b.classList.remove('active'));
-    $$('section').forEach(s => s.classList.remove('active'));
-    btn.classList.add('active');
-    $('#' + btn.dataset.tab).classList.add('active');
-    if (btn.dataset.tab === 'reports') renderReports();
-  };
+// الاستماع لتغييرات الأطفال
+onValue(ref(db, "children"), snap => {
+  children = snap.val() || {};
+  renderChildren();
+  populateChildDropdown();
+  renderReports();
+});
+// الاستماع لتغييرات الزيارات
+onValue(ref(db, "visits"), snap => {
+  visits = snap.val() || {};
+  renderVisits();
 });
 
-// عرض البيانات
+// دالة toast
+function showToast(msg, type = "success") {
+  const div = document.createElement("div");
+  div.className = `toast toast-${type}`;
+  div.textContent = msg;
+  document.getElementById("toast-container").append(div);
+  setTimeout(() => div.remove(), 3000);
+}
+
+// إدارة التبويبات
+function deactivateTabs() {
+  ["tab-children", "tab-appointments", "tab-reports"].forEach(id => document.getElementById(id).classList.add("hidden"));
+  ["tab-children-btn", "tab-appointments-btn", "tab-reports-btn"].forEach(id => document.getElementById(id).classList.remove("btn-tab-active"));
+}
+["tab-children-btn", "tab-appointments-btn", "tab-reports-btn"].forEach((btn, i) => {
+  document.getElementById(btn).addEventListener("click", () => {
+    deactivateTabs();
+    const sec = ["tab-children", "tab-appointments", "tab-reports"][i];
+    document.getElementById(sec).classList.remove("hidden");
+    document.getElementById(btn).classList.add("btn-tab-active");
+  });
+});
+
+// عرض جدول الأطفال
 function renderChildren() {
-  const tb = $('#tblChildren tbody'); tb.innerHTML = '';
-  Object.entries(S.children).forEach(([id, c], i) => {
-    tb.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${c.name}</td>
-        <td>${c.pkg}</td>
-        <td>${c.start}</td>
-        <td>${packages[c.pkg].total}</td>
-        <td>${c.remaining}</td>
-        <td>${c.status}</td>
-        <td>
-          <button onclick="openModal('child','${id}')">تعديل</button>
-          <button onclick="deleteChild('${id}')">حذف</button>
-        </td>
-      </tr>`;
+  const tbody = document.getElementById("table-children-body");
+  tbody.innerHTML = "";
+  Object.entries(children).forEach(([key, ch], i) => {
+    // حساب نهاية الاشتراك
+    const end = new Date(ch.startDate);
+    const weeks = Math.ceil(ch.visitsTotal / ch.freqPerWeek);
+    end.setDate(end.getDate() + weeks * 7);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="px-4 py-2">${i+1}</td>
+      <td class="px-4 py-2">${ch.name}</td>
+      <td class="px-4 py-2">${ch.subtype}</td>
+      <td class="px-4 py-2">${ch.startDate}</td>
+      <td class="px-4 py-2">${end.toISOString().split('T')[0]}</td>
+      <td class="px-4 py-2">${ch.visitsLeft}/${ch.visitsTotal}</td>
+      <td class="px-4 py-2">${ch.paused==='true'?'نعم':'لا'}</td>
+      <td class="px-4 py-2"><button onclick="openEditChild('${key}')" class="text-blue-500">تعديل</button></td>`;
+    tbody.append(tr);
   });
 }
 
-function renderSpecs() {
-  const tb = $('#tblSpecs tbody'); tb.innerHTML = '';
-  Object.entries(S.specialists).forEach(([id, s], i) => {
-    tb.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${s.name}</td>
-        <td>${s.section}</td>
-        <td>${s.days.join(',')}</td>
-        <td>
-          <button onclick="openModal('spec','${id}')">تعديل</button>
-          <button onclick="deleteSpec('${id}')">حذف</button>
-        </td>
-      </tr>`;
+// ملء قائمة الأطفال في مودال الزيارة
+function populateChildDropdown() {
+  const sel = document.getElementById("modal-appt-child");
+  sel.innerHTML = '<option value="">-- اختر الطفل --</option>';
+  Object.entries(children).forEach(([key, ch]) => {
+    sel.innerHTML += `<option value="${key}">${ch.name}</option>`;
   });
 }
 
-function renderAppts() {
-  const tb = $('#tblAppts tbody'); tb.innerHTML = '';
-  Object.entries(S.appointments).forEach(([id, a], i) => {
-    const ch = S.children[a.childId]?.name || '–';
-    const sp = S.specialists[a.specId]?.name || '–';
-    tb.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${ch}</td>
-        <td>${a.date}</td>
-        <td>${a.time}</td>
-        <td>${a.section}</td>
-        <td>${sp}</td>
-        <td>${a.type}</td>
-        <td>${a.status}</td>
-        <td>
-          ${a.status==='scheduled'?`<button onclick="markAbsent('${id}')">غاب</button>` : ''}
-          <button onclick="openModal('appt','${id}')">تعديل</button>
-          <button onclick="deleteAppt('${id}')">حذف</button>
-          ${a.status==='absent'?`<button onclick="makeup('${id}')">تعويض</button>` : ''}
-        </td>
-      </tr>`;
+// إضافة / تعديل طفل
+let editingChild = null;
+const formChild = document.getElementById("form-modal-child");
+formChild.addEventListener("submit", e => {
+  e.preventDefault();
+  const name = document.getElementById("modal-child-name").value.trim();
+  const subtype = document.getElementById("modal-child-subtype").value;
+  const startDate = document.getElementById("modal-child-start").value;
+  const paused = document.getElementById("modal-child-paused").value;
+  let visitsTotal = 1, freqPerWeek = 1;
+  if (subtype === '24') { visitsTotal = 8; freqPerWeek = 2; }
+  else if (subtype === '36') { visitsTotal = 12; freqPerWeek = 3; }
+  else if (subtype === '48') { visitsTotal = 16; freqPerWeek = 4; }
+  const data = { name, subtype, startDate, paused, visitsTotal, visitsLeft: visitsTotal, freqPerWeek };
+  const dbRef = editingChild ? ref(db, `children/${editingChild}`) : push(ref(db, 'children'));
+  set(dbRef, data).then(() => {
+    showToast('تم حفظ الطفل');
+    document.getElementById('modal-child').classList.add('hidden');
+  });
+});
+
+// فتح تعديل طفل
+window.openEditChild = key => {
+  editingChild = key;
+  const ch = children[key];
+  document.getElementById("modal-child-name").value = ch.name;
+  document.getElementById("modal-child-subtype").value = ch.subtype;
+  document.getElementById("modal-child-start").value = ch.startDate;
+  document.getElementById("modal-child-paused").value = ch.paused;
+  document.getElementById('modal-child').classList.remove('hidden');
+};
+
+// زر إضافة طفل
+document.getElementById("btn-add-child").addEventListener("click", () => {
+  editingChild = null;
+  formChild.reset();
+  document.getElementById('modal-child').classList.remove('hidden');
+});
+document.getElementById("modal-child-cancel").addEventListener("click", () => {
+  document.getElementById('modal-child').classList.add('hidden');
+});
+
+// عرض جدول الزيارات
+function renderVisits() {
+  const tbody = document.getElementById("table-appointments-body");
+  tbody.innerHTML = "";
+  Object.entries(visits).forEach(([key, v], i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="px-4 py-2">${i+1}</td>
+      <td class="px-4 py-2">${children[v.child]?.name || '-'}</td>
+      <td class="px-4 py-2">${v.day}</td>
+      <td class="px-4 py-2">${v.period}</td>
+      <td class="px-4 py-2">${v.status}</td>
+      <td class="px-4 py-2"><button onclick="markMissed('${key}')">غاب</button></td>`;
+    tbody.append(tr);
   });
 }
 
+// إضافة زيارة
+const formVis = document.getElementById("form-modal-appointment");
+formVis.addEventListener("submit", e => {
+  e.preventDefault();
+  const child = document.getElementById("modal-appt-child").value;
+  const day = document.getElementById("modal-appt-day").value;
+  const period = document.getElementById("modal-appt-period").value;
+  if (!child) { showToast('يرجى اختيار الطفل', 'error'); return; }
+  const ch = children[child];
+  if (ch.paused === 'true' || ch.visitsLeft < 1) { showToast('لا يمكن الحجز', 'error'); return; }
+  const newRef = push(ref(db, 'visits'));
+  set(newRef, { child, day, period, status: 'regular', createdAt: new Date().toISOString() });
+  update(ref(db, `children/${child}`), { visitsLeft: ch.visitsLeft - 1 });
+  showToast('تم الحجز');
+  document.getElementById('modal-appointment').classList.add('hidden');
+});
+document.getElementById("btn-add-appointment").addEventListener("click", () => {
+  document.getElementById('modal-appointment').classList.remove('hidden');
+});
+document.getElementById("modal-appt-cancel").addEventListener("click", () => {
+  document.getElementById('modal-appointment').classList.add('hidden');
+});
+
+// تسجيل غياب
+window.markMissed = key => {
+  update(ref(db, `visits/${key}`), { status: 'missed' }).then(() => showToast('تم تسجيل الغياب'));
+};
+
+// التقارير
 function renderReports() {
-  const endList = Object.values(S.children)
-    .filter(c => c.status==='active' && c.remaining <= packages[c.pkg].weekly * 3)
-    .map(c => `<li>${c.name} (${c.remaining})</li>`).join('') || '<li>لا أحد</li>';
-  const pausedList = Object.values(S.children)
-    .filter(c => c.status==='paused')
-    .map(c => `<li>${c.name}</li>`).join('') || '<li>لا أحد</li>';
-  $('#endingReport').innerHTML = `<h3>قريب الانتهاء:</h3><ul>${endList}</ul>`;
-  $('#pausedReport').innerHTML  = `<h3>متوقف:</h3><ul>${pausedList}</ul>`;
+  const exp = document.getElementById("report-expiring-children");
+  const paused = document.getElementById("report-paused-children");
+  exp.innerHTML = "";
+  paused.innerHTML = "";
+  Object.values(children).forEach(ch => {
+    if (ch.visitsLeft <= 2) exp.innerHTML += `<li>${ch.name} (${ch.visitsLeft} زيارات متبقية)</li>`;
+    if (ch.paused === 'true') paused.innerHTML += `<li>${ch.name}</li>`;
+  });
+  if (!exp.innerHTML) exp.innerHTML = '<li>لا توجد اشتراكات على وشك الانتهاء</li>';
+  if (!paused.innerHTML) paused.innerHTML = '<li>لا يوجد أطفال متوقفون</li>';
 }
-
-// CRUD وغياب وتعويض
-function deleteChild(id) { if(!confirm('حذف؟')) return; delete S.children[id]; sync(); renderChildren(); }
-function deleteSpec(id) { if(!confirm('حذف؟')) return; delete S.specialists[id]; sync(); renderSpecs(); }
-function deleteAppt(id) {
-  if(!confirm('حذف؟')) return;
-  const a = S.appointments[id];
-  if(a.type==='regular') S.children[a.childId].remaining++;
-  delete S.appointments[id];
-  sync(); renderAppts(); renderChildren();
-}
-function markAbsent(id) {
-  S.appointments[id].status = 'absent';
-  S.children[S.appointments[id].childId].remaining++;
-  sync(); renderAppts(); renderChildren();
-}
-function makeup(id) { autoScheduleChild(S.appointments[id].childId,{type:'makeup'}); }
-
-// المودال
-let mType, mId;
-
-function openModal(type, id=null) {
-  mType = type; mId = id;
-  $('#modalTitle').innerText = (id?'تعديل ':'إضافة ') + {child:'طفل',spec:'أخصائي',appt:'موعد'}[type];
-  const form = $('#modalForm'); form.innerHTML = '';
-  const d = id?(
-    type==='child'? S.children[id] :
-    type==='spec'? S.specialists[id] :
-    S.appointments[id]
-  ) : {};
-
-  if(type==='child') {
-    form.innerHTML = `
-      <label>اسم: <input name="name" value="${d.name||''}" /></label>
-      <label>بكيج:
-        <select name="pkg">
-          ${Object.keys(packages).map(k=>`
-            <option value="${k}" ${k===d.pkg?'selected':''}>${k}</option>`
-          ).join('')}
-        </select>
-      </label>
-      <label>بدء: <input type="date" name="start" value="${d.start||''}" /></label>
-      <label>حالة:
-        <select name="status">
-          <option value="active" ${d.status==='active'?'selected':''}>نشط</option>
-          <option value="paused" ${d.status==='paused'?'selected':''}>متوقف</option>
-        </select

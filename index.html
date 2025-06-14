@@ -2,98 +2,162 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>نظام مواعيد المركز</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام مواعيد المركز - محدث</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- خط عربي -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <!-- Firebase Initialization -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBinpejpZQv71xxhJrlYcET-uNLPL0pROY",
+      authDomain: "ynmo-center-scheduler.firebaseapp.com",
+      databaseURL: "https://ynmo-center-scheduler-default-rtdb.firebaseio.com",
+      projectId: "ynmo-center-scheduler",
+      storageBucket: "ynmo-center-scheduler.appspot.com",
+      messagingSenderId: "287665928063",
+      appId: "1:287665928063:web:67f6bccd66a25ef0118c4a"
+    };
+    window.appFirebase = initializeApp(firebaseConfig);
+    window.dbFirebase  = getDatabase(window.appFirebase);
+  </script>
   <style>
-    :root { --dark:#142445; --accent:#8bd5c8; --bg:#f9f1e5; --text:#333; }
-    body { margin:0; font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); }
-    header { background:var(--dark); color:#fff; display:flex; align-items:center; padding:10px; }
-    header img { height:50px; margin-left:10px; }
-    header h1 { font-size:1.5rem; }
-    nav { display:flex; background:#fff; border-bottom:2px solid var(--accent); }
-    nav button { flex:1; padding:10px; border:none; background:none; cursor:pointer; color:var(--dark); }
-    nav button.active, nav button:hover { background:var(--accent); }
-    section { display:none; padding:20px; }
-    section.active { display:block; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
-    th { background:var(--accent); }
-    button { padding:6px 12px; margin:4px; cursor:pointer; }
-    #modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.4);
-             align-items:center; justify-content:center; }
-    #modal .content { background:#fff; padding:20px; border-radius:8px; width:90%; max-width:400px; }
-    #modal label { display:block; margin:8px 0; }
-    #modal input, #modal select { width:100%; padding:6px; }
+    html, body { margin: 0; padding: 0; height: 100%; font-family: 'Tajawal', sans-serif; background-color: #F7F9FA; color: #1F2937; }
+    :root { --clr-primary:#0B2545; --clr-accent:#64C8B0; --clr-card-bg:#FFFFFF; --clr-border:#E5E7EB; --clr-header-bg:#0B2545; }
+    header { background-color:var(--clr-header-bg); height:56px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.1); color:white; }
+    .btn-primary{ @apply bg-accent text-white py-2 px-4 rounded; }
+    .modal-bg{ @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center; }
+    .modal-card{ @apply bg-white p-6 rounded-lg shadow-lg w-full max-w-md; }
   </style>
 </head>
 <body>
-
-  <header>
-    <img src="assets/logo.png" alt="شعار المركز" />
-    <h1>نظام مواعيد المركز</h1>
-  </header>
-
-  <nav>
-    <button data-tab="children" class="active">الأطفال</button>
-    <button data-tab="specialists">الأخصائيون</button>
-    <button data-tab="appointments">المواعيد</button>
-    <button data-tab="reports">التقارير</button>
-  </nav>
-
-  <section id="children" class="active">
-    <h2>١. إدارة الأطفال</h2>
-    <button onclick="openModal('child')">إضافة طفل</button>
-    <table id="tblChildren">
-      <thead>
-        <tr>
-          <th>#</th><th>اسم</th><th>بكيج</th><th>بدء</th><th>كلي</th><th>متبقي</th><th>حالة</th><th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <section id="specialists">
-    <h2>٢. إدارة الأخصائيين</h2>
-    <button onclick="openModal('spec')">إضافة أخصائي</button>
-    <table id="tblSpecs">
-      <thead>
-        <tr><th>#</th><th>اسم</th><th>قسم</th><th>أيام</th><th>إجراءات</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <section id="appointments">
-    <h2>٣. حجز المواعيد</h2>
-    <button onclick="autoScheduleAll()">جدولة تلقائية</button>
-    <table id="tblAppts">
-      <thead>
-        <tr>
-          <th>#</th><th>طفل</th><th>تاريخ</th><th>وقت</th><th>قسم</th><th>أخصائي</th><th>نوع</th><th>حالة</th><th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <section id="reports">
-    <h2>٤. التقارير</h2>
-    <div id="endingReport"></div>
-    <div id="pausedReport"></div>
-  </section>
-
-  <div id="modal">
-    <div class="content">
-      <h3 id="modalTitle"></h3>
-      <form id="modalForm"></form>
-      <div style="text-align:left; margin-top:10px;">
-        <button onclick="saveModal(event)">حفظ</button>
-        <button onclick="closeModal(event)">إلغاء</button>
+  <header><h1>نظام مواعيد المركز</h1></header>
+  <main class="container mx-auto px-4 py-6 space-y-8">
+    <div id="toast-container"></div>
+    <nav class="flex gap-6 border-b-2 border-clr-border">
+      <button id="tab-children-btn" class="btn-tab btn-tab-active">الأطفال</button>
+      <button id="tab-appointments-btn" class="btn-tab">الزيارات</button>
+      <button id="tab-reports-btn" class="btn-tab">التقارير</button>
+    </nav>
+    <section id="tab-children">
+      <h2 class="text-xl font-semibold mb-4">1. إدارة الأطفال والاشتراكات</h2>
+      <button id="btn-add-child" class="btn-primary mb-4">إضافة طفل جديد</button>
+      <div class="overflow-x-auto">
+        <table class="min-w-full border">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="px-4 py-2">#</th>
+              <th class="px-4 py-2">الاسم</th>
+              <th class="px-4 py-2">الباقة</th>
+              <th class="px-4 py-2">بداية</th>
+              <th class="px-4 py-2">نهاية</th>
+              <th class="px-4 py-2">زيارات متبقية</th>
+              <th class="px-4 py-2">متوقف</th>
+              <th class="px-4 py-2">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="table-children-body"></tbody>
+        </table>
       </div>
+    </section>
+    <section id="tab-appointments" class="hidden">
+      <h2 class="text-xl font-semibold mb-4">2. حجز الزيارات (دفعات)</h2>
+      <button id="btn-add-appointment" class="btn-primary mb-4">إدخال زيارة جديدة</button>
+      <div class="overflow-x-auto">
+        <table class="min-w-full border">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="px-4 py-2">#</th>
+              <th class="px-4 py-2">طفل</th>
+              <th class="px-4 py-2">اليوم</th>
+              <th class="px-4 py-2">الفترة</th>
+              <th class="px-4 py-2">الحالة</th>
+              <th class="px-4 py-2">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="table-appointments-body"></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="tab-reports" class="hidden">
+      <h2 class="text-xl font-semibold mb-4">3. التقارير الأسبوعية</h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="font-semibold">أطفال على وشك انتهاء الاشتراك</h3>
+          <ul id="report-expiring-children" class="list-disc list-inside"></ul>
+        </div>
+        <div>
+          <h3 class="font-semibold">أطفال متوقفون</h3>
+          <ul id="report-paused-children" class="list-disc list-inside"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- مودال إضافة/تعديل طفل -->
+  <div id="modal-child" class="hidden modal-bg">
+    <div class="modal-card">
+      <h2 class="text-lg font-semibold mb-4">إضافة / تعديل طفل</h2>
+      <form id="form-modal-child" class="space-y-4">
+        <div><label>الاسم</label><input id="modal-child-name" class="w-full border p-2" required /></div>
+        <div>
+          <label>الباقة</label>
+          <select id="modal-child-subtype" class="w-full border p-2">
+            <option value="24">24 جلسة (8 زيارات - 2 بالأسبوع)</option>
+            <option value="36">36 جلسة (12 زيارات - 3 بالأسبوع)</option>
+            <option value="48">48 جلسة (16 زيارات - 4 بالأسبوع)</option>
+            <option value="psych">جلسة نفسية منفردة</option>
+            <option value="speech">تخاطب منفردة</option>
+          </select>
+        </div>
+        <div><label>تاريخ البداية</label><input type="date" id="modal-child-start" class="w-full border p-2" required /></div>
+        <div>
+          <label>متوقف مؤقتًا</label>
+          <select id="modal-child-paused" class="w-full border п-2">
+            <option value="false">لا</option>
+            <option value="true">نعم</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-4">
+          <button type="button" id="modal-child-cancel" class="px-4 py-2">إلغاء</button>
+          <button type="submit" class="btn-primary">حفظ</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- مودال إضافة زيارة -->
+  <div id="modal-appointment" class="hidden modal-bg">
+    <div class="modal-card">
+      <h2 class="text-lg font-semibold mb-4">إضافة زيارة جديدة</h2>
+      <form id="form-modal-appointment" class="space-y-4">
+        <div><label>اختر الطفل</label><select id="modal-appt-child" class="w-full border p-2" required></select></div>
+        <div>
+          <label>اليوم</label>
+          <select id="modal-appt-day" class="w-full border p-2">
+            <option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option>
+          </select>
+        </div>
+        <div>
+          <label>الفترة (3 جلسات)</label>
+          <select id="modal-appt-period" class="w-full border p-2">
+            <option value="1:00-3:00">1:00-3:00</option>
+            <option value="3:20-5:20">3:20-5:20</option>
+            <option value="5:20-7:20">5:20-7:20</option>
+            <option value="7:20-9:20">7:20-9:20</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-4">
+          <button type="button" id="modal-appt-cancel" class="px-4 py-2">إلغاء</button>
+          <button type="submit" class="btn-primary">حجز</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
